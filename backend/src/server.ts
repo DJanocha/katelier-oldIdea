@@ -8,7 +8,6 @@ dotenv.config({ path: path.join(__dirname, '..', '.env') });
 const app = express();
 
 const port = process.env.SERVER_PORT || 1234;
-console.log(process.env);
 
 app.get('/', (req: Request, res: Response) => {
   res.json({ ok: true });
