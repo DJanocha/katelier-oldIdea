@@ -1,40 +1,33 @@
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
-import { MongoClient, ServerApiVersion, MongoClientOptions } from 'mongodb';
-
-//dotenv nie pobiera sie poprawnie. do naprawy potem
+import Achievement from './models/achievement';
+import mongoose from 'mongoose';
+import { getUri } from './utils/getDatabaseUri';
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
 
 const port = Number(process.env.SERVER_PORT) || 1234;
-const mongoUrl =
-  process.env.MONGO_DB_URI?.replace(
-    '<MONGO_DB_PASSWORD>',
-    process.env.MONGO_DB_PASSWORD || ''
-  ) || '';
+addTestShit();
 
-const client = new MongoClient(mongoUrl, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverApi: ServerApiVersion.v1
-} as MongoClientOptions);
-
-client.connect((err) => {
-  if (err) {
-    console.error({ ok: false, message: err.message });
+async function addTestShit() {
+  try {
+    const uri = getUri();
+    await mongoose.connect(uri);
+    console.log({ uri });
+    const testAchievement = new Achievement({
+      category: 'kategoria1',
+      project: 'projekt1',
+      stage: 1
+    });
+    const x = await testAchievement.save();
+    console.log({ testAchievement, x });
+    // console.log('zpaisano ');
+  } catch (error) {
+    console.log({ error });
   }
-  const collection = client.db('katelier').collection('steps');
-  if (!collection) {
-    console.warn('no collection', { collection, mongoUrl, port });
-  }
-  client.close();
-});
-
-app.get('/', (req: Request, res: Response) => {
-  res.json({ ok: true });
-});
+}
 
 app.listen(port, () => {
   console.log(`running on port ${port}`);
