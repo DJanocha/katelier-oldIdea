@@ -4,18 +4,14 @@ import { AppError } from './AppError';
 import { catchAsync } from './catchAsync';
 
 type HandlerKey = 'getAll' | 'getOne' | 'deleteOne' | 'updateOne' | 'createOne';
-type RequestHandlerGenerator = (arg0: {
-  model: mongoose.Model<any>;
-}) => Record<HandlerKey, RequestHandler>;
 
 const name = (model: mongoose.Model<any>) =>
   model.modelName.toLocaleLowerCase();
 
-// export const generateHandlers: RequestHandlerGenerator = ({ model }) => ({
 export const generateHandlers = ({
   model
 }: {
-  model: mongoose.Model<unknown>;
+  model: mongoose.Model<any>;
 }): Record<HandlerKey, RequestHandler> => ({
   getAll: catchAsync(async (req, res, next) => {
     const elements = await model.find();
