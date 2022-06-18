@@ -1,9 +1,7 @@
-import Achievement from '../models/achievement';
+import Step from '../models/steps';
 import { generateHandlers } from '../utils/handlersGenerator';
-// const catchAsync = () => {}
-
 const { createOne, deleteOne, getAll, getOne, updateOne } = generateHandlers({
-  model: Achievement
+  model: Step
 });
 
 export { getAll, createOne, getOne, updateOne, deleteOne };

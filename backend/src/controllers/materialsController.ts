@@ -1,9 +1,7 @@
-import Achievement from '../models/achievement';
+import Material from '../models/materials';
 import { generateHandlers } from '../utils/handlersGenerator';
-// const catchAsync = () => {}
-
 const { createOne, deleteOne, getAll, getOne, updateOne } = generateHandlers({
-  model: Achievement
+  model: Material
 });
 
 export { getAll, createOne, getOne, updateOne, deleteOne };

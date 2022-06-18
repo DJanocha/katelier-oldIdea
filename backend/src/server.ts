@@ -4,6 +4,7 @@ import path from 'path';
 import mongoose from 'mongoose';
 import { getUri } from './utils/getDatabaseUri';
 import { useAllRoutesBy } from './routes/combinedRoutes';
+import { globalErrorHandler } from './controllers/globalErrorHandler';
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
@@ -21,7 +22,7 @@ async function addTestShit() {
   }
 }
 useAllRoutesBy(app);
-
+app.use(globalErrorHandler);
 app.listen(port, () => {
   console.log(`running on port ${port}`);
 });

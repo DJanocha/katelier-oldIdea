@@ -2,3 +2,4 @@ backend/node_modules/
 frontend/node_modules/
 private-notes.txt
 backend/.env
+backend/utils/toSchema.ts
