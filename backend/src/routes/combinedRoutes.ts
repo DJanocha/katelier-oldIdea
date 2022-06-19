@@ -3,6 +3,7 @@ import achievementRouter from './achievementsRouter';
 import materialsRouter from './materialsRouter';
 import stepsRouter from './stepsRouter';
 import projectsRouter from './projectsRouter';
+import clientsRouter from './clientsRouter';
 import { AppError } from '../utils/AppError';
 
 const unknownRouteHandler = (
@@ -18,6 +19,7 @@ export const useAllRoutesBy = (app: Express) => {
   app.use('/api/materials', materialsRouter);
   app.use('/api/steps', stepsRouter);
   app.use('/api/projects', projectsRouter);
+  app.use('/api/clients', clientsRouter);
 
   app.all('*', unknownRouteHandler);
 };
