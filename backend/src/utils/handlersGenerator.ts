@@ -15,15 +15,20 @@ export const generateHandlers = ({
 }): Record<HandlerKey, RequestHandler> => ({
   getAll: catchAsync(async (req, res, next) => {
     const elements = await model.find();
-    return res
-      .status(500)
-      .json({ role: 'get all items', ready: false, elements });
+    return res.status(500).json({
+      count: elements.length,
+      role: `get all ${model.modelName}s`,
+      ready: false,
+      elements
+    });
   }),
   createOne: catchAsync(async (req, res, next) => {
     const newElement = await model.create({ ...req.body });
-    return res
-      .status(200)
-      .json({ role: 'get all items', ready: false, newElement });
+    return res.status(200).json({
+      role: `create one ${model.modelName}`,
+      ready: false,
+      newElement
+    });
   }),
   getOne: catchAsync(async (req, res, next) => {
     const { id } = req.params;
@@ -37,7 +42,7 @@ export const generateHandlers = ({
   }),
   updateOne: catchAsync(async (req, res, next) => {
     const { params, body } = req;
-    const id = Number(params.id);
+    const { id } = params;
     await model.findByIdAndUpdate(id, { ...req.body });
 
     return res.status(200).json({
@@ -47,10 +52,12 @@ export const generateHandlers = ({
   }),
   deleteOne: catchAsync(async (req, res, next) => {
     const { params } = req;
-    const id = Number(params.id);
-    model.findByIdAndDelete(id);
+    const { id } = params;
+    await model.findByIdAndDelete(id);
     return res.status(200).json({
-      message: `deleting single ${name(model)} NOT IMPLEMENTED YET!!`,
+      message: `deleting single ${name(
+        model
+      )} with id ${id} NOT IMPLEMENTED YET!!`,
       params
     });
   })
