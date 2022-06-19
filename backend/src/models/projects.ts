@@ -1,10 +1,9 @@
-import mongoose from 'mongoose';
-const { Schema, model } = mongoose;
+import { Schema, model, Types } from 'mongoose';
 
-type ProjectType = {
+export type ProjectType = {
   name: string;
   description: string;
-  steps: mongoose.Types.ObjectId[];
+  steps: Types.ObjectId[];
   client_info: string;
 };
 
@@ -15,10 +14,8 @@ const ProjectSchema = new Schema<ProjectType>({
     unique: true
   },
   description: String,
-  steps: { type: [mongoose.Schema.Types.ObjectId], default: [], ref: 'Step' },
-  client_info: {
-    type: String
-  }
+  steps: { type: [Schema.Types.ObjectId], default: [], ref: 'Step' },
+  client_info: String
 });
 
 const Project = model<ProjectType>('Project', ProjectSchema);

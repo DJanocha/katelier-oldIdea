@@ -6,8 +6,16 @@ import {
   getOne,
   updateOne
 } from '../controllers/projectsController';
-import { checkStepsValid } from '../utils/checkStepsIdsValid';
+import { stopParentFromHavingInvalidChildrens } from '../utils/checkStepsIdsValid';
+import Step from '../models/steps';
+import Project from '../models/projects';
+
 const router = express.Router();
+
+const checkStepsValid = stopParentFromHavingInvalidChildrens({
+  childrenModel: Step,
+  parentModel: Project
+});
 
 router.route('/').get(getAll).post(checkStepsValid, createOne);
 

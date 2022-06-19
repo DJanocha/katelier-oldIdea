@@ -1,12 +1,10 @@
-import { NextFunction, Request, RequestHandler, Response } from 'express';
+import { RequestHandler } from 'express';
 import mongoose from 'mongoose';
 import { AppError } from './AppError';
 import { catchAsync } from './catchAsync';
+import { name } from './modelsName';
 
 type HandlerKey = 'getAll' | 'getOne' | 'deleteOne' | 'updateOne' | 'createOne';
-
-const name = (model: mongoose.Model<any>) =>
-  model.modelName.toLocaleLowerCase();
 
 export const generateHandlers = ({
   model
