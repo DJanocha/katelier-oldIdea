@@ -1,7 +1,5 @@
-import mongoose from 'mongoose';
-//todo
-const { Schema, model } = mongoose;
-import { MaterialSchema, MaterialType } from './materials';
+import { Schema, model, Types } from 'mongoose';
+// import { MaterialSchema, MaterialType } from './materials';
 
 type StepType = {
   category: string;
@@ -10,7 +8,7 @@ type StepType = {
   img: string;
   path: string;
   public_path: string;
-  used_materials: MaterialType[];
+  used_materials: Types.ObjectId[];
   start_time: Date;
   stop_time: Date;
   description: string;
@@ -26,7 +24,11 @@ const StepSchema = new Schema<StepType>({
   public_path: String,
   start_time: Date,
   stop_time: Date,
-  used_materials: { type: [MaterialSchema], default: [] }
+  used_materials: {
+    type: [Schema.Types.ObjectId],
+    ref: 'Material',
+    default: []
+  }
 });
 
 const Step = model<StepType>('Step', StepSchema);

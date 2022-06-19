@@ -20,6 +20,9 @@ export const useAllRoutesBy = (app: Express) => {
   app.use('/api/projects', projectsRouter);
   app.use('/api/clients', clientsRouter);
   app.use('/api/categories', categoriesRouter);
+  // app.get('/', (req, res) => {
+  //   res.send('<html><head></head><body><h1>SIEMANKO</h1></body></html>');
+  // });
 
   app.all('*', unknownRouteHandler);
 };

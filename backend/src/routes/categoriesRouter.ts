@@ -18,7 +18,7 @@ const restrictInvalidProjects = stopParentFromHavingInvalidChildrens({
 
 const router = express.Router();
 
-router.route('/').get(getAll).post(createOne);
+router.route('/').get(getAll).post(restrictInvalidProjects, createOne);
 
 router
   .route('/:id')
