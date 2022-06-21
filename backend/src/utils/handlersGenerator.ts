@@ -5,7 +5,8 @@ import { catchAsync } from './catchAsync';
 import { name } from './modelsName';
 
 type HandlerKey = 'getAll' | 'getOne' | 'deleteOne' | 'updateOne' | 'createOne';
-
+const plural = (singular: string) =>
+  singular.endsWith('y') ? singular.slice(0, -1) + 'ies' : singular + 's';
 export const generateHandlers = ({
   model
 }: {
@@ -15,7 +16,7 @@ export const generateHandlers = ({
     const elements = await model.find();
     return res.status(500).json({
       count: elements.length,
-      role: `get all ${model.modelName}s`,
+      role: `get all ${plural(name(model))}`,
       ready: false,
       elements
     });
@@ -23,7 +24,7 @@ export const generateHandlers = ({
   createOne: catchAsync(async (req, res, next) => {
     const newElement = await model.create({ ...req.body });
     return res.status(200).json({
-      role: `create one ${model.modelName}`,
+      role: `create one ${name(model)}`,
       ready: false,
       newElement
     });
