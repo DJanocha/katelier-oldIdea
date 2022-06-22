@@ -1,5 +1,4 @@
 import { Schema, model, Types } from 'mongoose';
-// import { MaterialSchema, MaterialType } from './materials';
 
 type StepType = {
   category: string;
@@ -9,8 +8,7 @@ type StepType = {
   path: string;
   public_path: string;
   used_materials: Types.ObjectId[];
-  start_time: Date;
-  stop_time: Date;
+  activity: Types.ObjectId;
   description: string;
 };
 
@@ -22,8 +20,9 @@ const StepSchema = new Schema<StepType>({
   img: String,
   path: String,
   public_path: String,
-  start_time: Date,
-  stop_time: Date,
+  activity: { type: Schema.Types.ObjectId, ref: 'Step' },
+  // start_time: Date,
+  // stop_time: Date,
   used_materials: {
     type: [Schema.Types.ObjectId],
     ref: 'Material',
