@@ -5,7 +5,7 @@ import {
   getOne,
   updateOne,
   deleteOne
-} from '../controllers/stepsController';
+} from 'src/controllers/stepsController';
 const router = express.Router({});
 
 router.route('/').get(getAll).post(createOne);

@@ -1,5 +1,5 @@
-import Material from '../models/materials';
-import { generateHandlers } from '../utils/handlersGenerator';
+import { Material } from 'src/models';
+import { generateHandlers } from 'src/utils';
 const { createOne, deleteOne, getAll, getOne, updateOne } = generateHandlers({
   model: Material
 });

@@ -9,7 +9,7 @@ export type MaterialType = {
   img: string;
 };
 
-export const MaterialSchema = new Schema<MaterialType>({
+const MaterialSchema = new Schema<MaterialType>({
   name: {
     type: String,
     required: [true, 'name required']
@@ -22,5 +22,4 @@ export const MaterialSchema = new Schema<MaterialType>({
   img: String
 });
 
-const Material = model<MaterialType>('Material', MaterialSchema);
-export default Material;
+export const Material = model<MaterialType>('Material', MaterialSchema);

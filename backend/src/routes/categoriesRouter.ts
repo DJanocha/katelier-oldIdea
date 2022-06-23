@@ -1,15 +1,13 @@
 import express from 'express';
-
 import {
   createOne,
   deleteOne,
   getAll,
   getOne,
   updateOne
-} from '../controllers/categoriesController';
-import Category from '../models/categories';
-import Project from '../models/projects';
-import { stopParentFromHavingInvalidChildrens } from '../utils/checkStepsIdsValid';
+} from 'src/controllers/categoriesController';
+import { Project, Category } from 'src/models';
+import { stopParentFromHavingInvalidChildrens } from 'src/utils/';
 
 const restrictInvalidProjects = stopParentFromHavingInvalidChildrens({
   parentModel: Category,

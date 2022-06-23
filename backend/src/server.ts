@@ -1,10 +1,12 @@
+require('module-alias/register');
 import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import mongoose from 'mongoose';
-import { getUri } from './utils/getDatabaseUri';
-import { useAllRoutesBy } from './routes/combinedRoutes';
-import { globalErrorHandler } from './controllers/globalErrorHandler';
+import { getUri } from 'src/utils/getDatabaseUri';
+import { useAllRoutesBy } from 'src/routes/combinedRoutes';
+import { globalErrorHandler } from 'src/controllers/globalErrorHandler';
+
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();

@@ -1,5 +1,5 @@
-import Project from '../models/projects';
-import { generateHandlers } from '../utils/handlersGenerator';
+import { Project } from 'src/models';
+import { generateHandlers } from 'src/utils';
 const { createOne, deleteOne, getAll, getOne, updateOne } = generateHandlers({
   model: Project
 });

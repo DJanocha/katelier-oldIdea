@@ -1,8 +1,6 @@
 import { RequestHandler } from 'express';
 import mongoose from 'mongoose';
-import { AppError } from './AppError';
-import { catchAsync } from './catchAsync';
-import { name } from './modelsName';
+import { name, AppError, catchAsync } from 'src/utils';
 
 type HandlerKey = 'getAll' | 'getOne' | 'deleteOne' | 'updateOne' | 'createOne';
 const plural = (singular: string) =>

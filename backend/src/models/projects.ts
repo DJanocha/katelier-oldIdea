@@ -18,5 +18,4 @@ const ProjectSchema = new Schema<ProjectType>({
   client_info: String
 });
 
-const Project = model<ProjectType>('Project', ProjectSchema);
-export default Project;
+export const Project = model<ProjectType>('Project', ProjectSchema);

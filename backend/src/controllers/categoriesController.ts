@@ -1,5 +1,5 @@
-import Category from '../models/categories';
-import { generateHandlers } from '../utils/handlersGenerator';
+import { Category } from 'src/models';
+import { generateHandlers } from 'src/utils';
 
 const { createOne, deleteOne, getAll, getOne, updateOne } = generateHandlers({
   model: Category

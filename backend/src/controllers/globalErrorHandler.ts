@@ -1,5 +1,5 @@
 import { ErrorRequestHandler, Response } from 'express';
-import { AppError } from '../utils/AppError';
+import { AppError } from 'src/utils';
 
 const sendDevError = (err: AppError, res: Response) => {
   return res.status(err.statusCode).json({

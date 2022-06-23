@@ -1,5 +1,5 @@
 import { Schema, model, Types } from 'mongoose';
-type CategoryType = {
+export type CategoryType = {
   name: string;
   description: string;
   color: string;
@@ -23,6 +23,4 @@ const CategorySchema = new Schema<CategoryType>({
   description: String
 });
 
-const Category = model<CategoryType>('Category', CategorySchema);
-
-export default Category;
+export const Category = model<CategoryType>('Category', CategorySchema);

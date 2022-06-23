@@ -1,8 +1,6 @@
 import { RequestHandler } from 'express';
 import { Model } from 'mongoose';
-import { AppError } from './AppError';
-import { catchAsync } from './catchAsync';
-import { name } from './modelsName';
+import { AppError, catchAsync, name } from 'src/utils';
 
 export const stopParentFromHavingInvalidChildrens = ({
   parentModel,

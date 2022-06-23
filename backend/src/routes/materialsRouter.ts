@@ -6,7 +6,7 @@ import {
   getOne,
   deleteOne,
   updateOne
-} from '../controllers/materialsController';
+} from 'src/controllers/materialsController';
 
 router.route('/').get(getAll).post(createOne);
 router.route('/:id').get(getOne).delete(deleteOne).patch(updateOne);

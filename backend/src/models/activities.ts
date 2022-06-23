@@ -1,8 +1,7 @@
 import { Schema, model, Types } from 'mongoose';
-import { isDateValid } from '../utils/isDateValid';
-// import { MaterialSchema, MaterialType } from './materials';
+import { isDateValid } from 'src/utils';
 
-type ActivityType = {
+export type ActivityType = {
   name: string;
   color: string;
   date: string; // null (it's a template) or Date object (it's put on callendar)
@@ -80,5 +79,4 @@ ActivitySchema.virtual('isTemplate').get(function () {
   return this.date == null;
 });
 
-const Activity = model<ActivityType>('Activity', ActivitySchema);
-export default Activity;
+export const Activity = model<ActivityType>('Activity', ActivitySchema);

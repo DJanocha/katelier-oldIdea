@@ -5,10 +5,9 @@ import {
   getAll,
   getOne,
   updateOne
-} from '../controllers/projectsController';
-import { stopParentFromHavingInvalidChildrens } from '../utils/checkStepsIdsValid';
-import Step from '../models/steps';
-import Project from '../models/projects';
+} from 'src/controllers/projectsController';
+import { stopParentFromHavingInvalidChildrens } from 'src/utils';
+import { Step, Project } from 'src/models';
 
 const router = express.Router();
 

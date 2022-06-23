@@ -1,11 +1,11 @@
 import { Express, Request, Response, NextFunction } from 'express';
-import materialsRouter from './materialsRouter';
-import stepsRouter from './stepsRouter';
-import projectsRouter from './projectsRouter';
-import clientsRouter from './clientsRouter';
-import categoriesRouter from './categoriesRouter';
-import activitiesRouter from './activitiesRouter';
-import { AppError } from '../utils/AppError';
+import { AppError } from 'src/utils';
+import materialsRouter from 'src/routes/materialsRouter';
+import stepsRouter from 'src/routes/stepsRouter';
+import projectsRouter from 'src/routes/projectsRouter';
+import clientsRouter from 'src/routes/clientsRouter';
+import categoriesRouter from 'src/routes/categoriesRouter';
+import activitiesRouter from 'src/routes/activitiesRouter';
 
 const unknownRouteHandler = (
   req: Request,

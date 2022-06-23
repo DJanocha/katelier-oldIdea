@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const { Schema, model } = mongoose;
 
-type ClientType = {
+export type ClientType = {
   name: string;
   tel: string;
   email: string;
@@ -29,5 +29,4 @@ const ClientSchema = new Schema<ClientType>({
   }
 });
 
-const Client = model<ClientType>('Client', ClientSchema);
-export default Client;
+export const Client = model<ClientType>('Client', ClientSchema);

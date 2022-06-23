@@ -6,7 +6,7 @@ import {
   getAll,
   getOne,
   updateOne
-} from '../controllers/activitiesController';
+} from 'src/controllers/activitiesController';
 
 const router = express.Router();
 

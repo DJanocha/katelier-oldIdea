@@ -1,6 +1,6 @@
 import { Schema, model, Types } from 'mongoose';
 
-type StepType = {
+export type StepType = {
   category: string;
   project: string;
   step_number: number;
@@ -30,5 +30,4 @@ const StepSchema = new Schema<StepType>({
   }
 });
 
-const Step = model<StepType>('Step', StepSchema);
-export default Step;
+export const Step = model<StepType>('Step', StepSchema);
