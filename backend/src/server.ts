@@ -13,9 +13,9 @@ const app = express();
 app.use(express.json());
 
 const port = Number(process.env.SERVER_PORT) || 1234;
-addTestShit();
+connectToDb();
 
-async function addTestShit() {
+async function connectToDb() {
   try {
     const uri = getUri();
     await mongoose.connect(uri);
