@@ -3,7 +3,7 @@ import { AppError } from 'src/utils';
 import materialsRouter from 'src/routes/materialsRouter';
 import stepsRouter from 'src/routes/stepsRouter';
 import projectsRouter from 'src/routes/projectsRouter';
-import clientsRouter from 'src/routes/clientsRouter';
+import usersRouter from 'src/routes/usersRouter';
 import categoriesRouter from 'src/routes/categoriesRouter';
 import activitiesRouter from 'src/routes/activitiesRouter';
 
@@ -19,7 +19,7 @@ export const useAllRoutesBy = (app: Express) => {
   app.use('/api/materials', materialsRouter);
   app.use('/api/steps', stepsRouter);
   app.use('/api/projects', projectsRouter);
-  app.use('/api/clients', clientsRouter);
+  app.use('/api/users', usersRouter);
   app.use('/api/categories', categoriesRouter);
   app.use('/api/activities', activitiesRouter);
   // app.get('/', (req, res) => {

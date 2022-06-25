@@ -1,8 +1,8 @@
 import { generateHandlers } from 'src/utils';
-import { Client } from 'src/models';
+import { User } from 'src/models';
 
 const { createOne, deleteOne, getAll, getOne, updateOne } = generateHandlers({
-  model: Client
+  model: User
 });
 
 export { createOne, deleteOne, getAll, getOne, updateOne };
