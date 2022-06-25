@@ -43,7 +43,8 @@ const UserSchema = new Schema<UserType>({
   password: {
     type: String,
     required: [true, 'Password is required'],
-    minlength: 8
+    minlength: 8,
+    select: false
   },
   passwordConfirm: {
     type: String,

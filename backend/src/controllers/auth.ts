@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
+import bcrypt from 'bcryptjs';
 import jwt, { Secret } from 'jsonwebtoken';
-import { catchAsync } from 'src/utils';
-import { User } from 'src/models';
+import { AppError, catchAsync } from 'src/utils';
+import { User, UserType } from 'src/models';
 export const addNameToRequest = (
   req: Request,
   _res: Response,
@@ -27,4 +28,27 @@ export const register: RequestHandler = catchAsync(async (req, res, next) => {
   );
 
   return res.json({ ok: true, data: newUser, token });
+});
+export const login: RequestHandler = catchAsync(async (req, res, next) => {
+  const emailPasswordMessage = 'Email or password not correct.';
+  const { email, password: candidatePassword } = req.body;
+  if (!email || !candidatePassword) {
+    return next(new AppError('Please provide email and password', 400));
+  }
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) {
+    return next(new AppError(emailPasswordMessage, 400));
+  }
+  const { password } = user;
+
+  const passwordOk = await bcrypt.compare(candidatePassword, password);
+
+  if (!passwordOk) {
+    return next(new AppError(emailPasswordMessage, 400));
+  }
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET as Secret, {
+    expiresIn: process.env.JWT_EXPIRES_IN
+  });
+
+  return res.json({ ok: true, data: user, token });
 });
