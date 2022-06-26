@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import mongoose from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import isEmail from 'validator/lib/isEmail';
 const { Schema, model } = mongoose;
 
@@ -14,9 +14,10 @@ export type UserType = {
   categories?: mongoose.Types.ObjectId[];
   password: string;
   passwordConfirm: string | undefined;
+  passwordChangedAt: Date;
 };
 
-const UserSchema = new Schema<UserType>({
+const UserSchema = new Schema<UserType, Model<UserType>>({
   name: { type: String, requried: true, unique: true },
   tel: { type: String, requried: false },
   email: {
@@ -57,24 +58,19 @@ const UserSchema = new Schema<UserType>({
         return this.password === this.passwordConfirm;
       }
     }
-  }
+  },
+  passwordChangedAt: { type: Date }
 });
-UserSchema.pre(
-  /^save/,
-  async function (
-    this: UserType & { isModified: (x: keyof UserType) => boolean },
-    next
-  ) {
-    if (!this.isModified('password')) {
-      next();
-    }
-    if (this.passwordConfirm != undefined) {
-      this.passwordConfirm = undefined;
-    }
-    this.password = await bcrypt.hash(this.password, 12);
+UserSchema.pre(/^save/, async function (this: UserType & { isModified: (x: keyof UserType) => boolean }, next) {
+  if (!this.isModified('password')) {
     next();
   }
-);
+  if (this.passwordConfirm != undefined) {
+    this.passwordConfirm = undefined;
+  }
+  this.password = await bcrypt.hash(this.password, 12);
+  next();
+});
 
 UserSchema.index({ email: 1 }, { unique: true });
 export const User = model<UserType>('User', UserSchema);

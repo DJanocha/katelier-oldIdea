@@ -6,6 +6,7 @@ import {
   getOne,
   updateOne
 } from 'src/controllers/categoriesController';
+import { requireLogin } from 'src/controllers/auth';
 import { Project, Category, Step } from 'src/models';
 import {
   AppError,
@@ -20,7 +21,10 @@ const restrictInvalidProjects = stopParentFromHavingInvalidChildrens({
 
 const router = express.Router();
 
-router.route('/').get(getAll).post(restrictInvalidProjects, createOne);
+router
+  .route('/')
+  .get(requireLogin, getAll)
+  .post(restrictInvalidProjects, createOne);
 
 router
   .route('/:id')

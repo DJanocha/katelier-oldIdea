@@ -10,6 +10,6 @@
   ],
   "rules": {
     "no-unused-vars": 1,
-    "prettier/prettier": 1
+    "prettier/prettier": 0
   }
 }

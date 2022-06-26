@@ -14,7 +14,6 @@ export const getUri = ({
   const db_name = db || process.env.DB_NAME || def.db;
   const base_string = process.env.DB_URI || '';
 
-  console.log({});
   const uri = base_string
     .replace('<DB_PASS>', password)
     .replace('<DB_LOGIN>', user_string)
