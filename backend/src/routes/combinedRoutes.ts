@@ -8,11 +8,7 @@ import categoriesRouter from 'src/routes/categoriesRouter';
 import activitiesRouter from 'src/routes/activitiesRouter';
 import authRouter from 'src/routes/authRouter';
 
-const unknownRouteHandler = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const unknownRouteHandler = (req: Request, res: Response, next: NextFunction) => {
   next(new AppError(`Could not find ${req.originalUrl} route.`, 404));
 };
 
@@ -24,10 +20,6 @@ export const useAllRoutesBy = (app: Express) => {
   app.use('/api/categories', categoriesRouter);
   app.use('/api/activities', activitiesRouter);
   app.use('/', authRouter);
-
-  // app.get('/', (req, res) => {
-  //   res.send('<html><head></head><body><h1>SIEMANKO</h1></body></html>');
-  // });
 
   app.all('*', unknownRouteHandler);
 };
