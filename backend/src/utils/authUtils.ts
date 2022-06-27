@@ -16,8 +16,8 @@ export const isTokenOutdated = ({
     return true;
   }
 
-  const changedAt = trimTo10(passwordChangedAt.getTime());
-  if (changedAt > iat) {
+  const changedAt = trimTo10(passwordChangedAt?.getTime());
+  if (changedAt && changedAt > iat) {
     return true;
   }
   if (exp < now) {

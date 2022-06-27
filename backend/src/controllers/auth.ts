@@ -40,7 +40,7 @@ export const login: RequestHandler = catchAsync(async (req, res, next) => {
   return res.json({ ok: true, data: user, token });
 });
 
-export const requireLogin = catchAsync(
+export const requireLogin: RequestHandler = catchAsync(
   async (req: Request & { user?: UserType | undefined }, res: Response, next: NextFunction) => {
     let token;
     if (req.headers.authorization?.startsWith('Bearer')) {
@@ -62,7 +62,7 @@ export const requireLogin = catchAsync(
     const foundUser = await User.findById(id);
 
     if (!foundUser) {
-      return next(new AppError('User no longer exist. Log into different account', 401));
+      return next(new AppError('User no longer exist. Log into different account', 403));
     }
 
     const tokenIsOutdated = isTokenOutdated({ passwordChangedAt: foundUser.passwordChangedAt, iat, exp });
@@ -75,3 +75,10 @@ export const requireLogin = catchAsync(
     next();
   }
 );
+export const requireArtist: RequestHandler = (req: Request & { user?: UserType | undefined }, res, next) => {
+  const isArtist = req.user?.role === 'artist';
+  if (!isArtist) {
+    return next(new AppError('You need to be an artist here to see that page.', 401));
+  }
+  next();
+};

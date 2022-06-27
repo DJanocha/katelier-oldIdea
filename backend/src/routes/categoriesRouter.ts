@@ -1,18 +1,8 @@
 import express from 'express';
-import {
-  createOne,
-  deleteOne,
-  getAll,
-  getOne,
-  updateOne
-} from 'src/controllers/categoriesController';
-import { requireLogin } from 'src/controllers/auth';
+import { createOne, deleteOne, getAll, getOne, updateOne } from 'src/controllers/categoriesController';
+import { requireArtist, requireLogin } from 'src/controllers/auth';
 import { Project, Category, Step } from 'src/models';
-import {
-  AppError,
-  catchAsync,
-  stopParentFromHavingInvalidChildrens
-} from 'src/utils/';
+import { AppError, catchAsync, stopParentFromHavingInvalidChildrens } from 'src/utils/';
 
 const restrictInvalidProjects = stopParentFromHavingInvalidChildrens({
   parentModel: Category,
@@ -20,17 +10,12 @@ const restrictInvalidProjects = stopParentFromHavingInvalidChildrens({
 });
 
 const router = express.Router();
+router.use(requireLogin, requireArtist);
 
-router
-  .route('/')
-  .get(requireLogin, getAll)
-  .post(restrictInvalidProjects, createOne);
+router.route('/').get(getAll).post(restrictInvalidProjects, createOne);
 
-router
-  .route('/:id')
-  .get(getOne)
-  .delete(deleteOne)
-  .patch(restrictInvalidProjects, updateOne);
+router.route('/:id').get(getOne).delete(deleteOne).patch(restrictInvalidProjects, updateOne);
+
 router.route('/:categoryName/populateSteps').get(
   catchAsync(async (req, res, next) => {
     console.log({ r: req.params });
