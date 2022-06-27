@@ -4,7 +4,9 @@ import { requireLogin, requireArtist } from 'src/controllers/auth';
 
 const router = express.Router();
 
-router.use(requireLogin, requireArtist);
+router.use(requireLogin);
+
+router.use(requireArtist);
 router.route('/').get(getAll);
 router.route('/:id').get(getOne).delete(deleteOne).patch(updateOne);
 

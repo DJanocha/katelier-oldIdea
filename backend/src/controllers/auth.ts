@@ -1,20 +1,21 @@
 import { promisify } from 'util';
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
-import jwt, { Secret } from 'jsonwebtoken';
-import { AppError, catchAsync, isTokenOutdated } from 'src/utils';
+import jwt from 'jsonwebtoken';
+import { AppError, catchAsync, isResetTokenOutdated } from 'src/utils';
 import { User, UserType } from 'src/models';
+import { sendEmail } from 'src/utils/emails';
+import { loginAndSendResponse } from 'src/utils/authUtils';
+import { hashTheResetToken } from 'src/utils/hashTheResetToken';
 
+//routes
 export const register: RequestHandler = catchAsync(async (req, res, next) => {
   const acceptedUserData = { ...req.body, role: undefined };
 
   const newUser = new User(acceptedUserData);
   await newUser.save();
-  const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET as Secret, {
-    expiresIn: process.env.JWT_EXPIRES_IN
-  });
 
-  return res.json({ ok: true, data: newUser, token });
+  return loginAndSendResponse({ id: newUser._id, res });
 });
 export const login: RequestHandler = catchAsync(async (req, res, next) => {
   const emailPasswordMessage = 'Email or password not correct.';
@@ -33,12 +34,89 @@ export const login: RequestHandler = catchAsync(async (req, res, next) => {
   if (!passwordOk) {
     return next(new AppError(emailPasswordMessage, 400));
   }
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET as Secret, {
-    expiresIn: process.env.JWT_EXPIRES_IN
-  });
-
-  return res.json({ ok: true, data: user, token });
+  return loginAndSendResponse({ id: user._id, res });
 });
+
+export const resetPassword: RequestHandler = catchAsync(async (req, res, next) => {
+  const { token } = req.params;
+  const { password, passwordConfirm } = req.body;
+
+  const hashedToken = hashTheResetToken(token);
+
+  const foundUser = await User.findOne({
+    resetPassword: hashedToken,
+    resetPasswordExpires: {
+      $gt: Date.now()
+    }
+  });
+  if (!foundUser) {
+    return next(new AppError('Token invalid or outdated. You need new one.', 401));
+  }
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  foundUser.resetPassword = undefined;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  foundUser.resetPasswordExpires = undefined;
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  foundUser.password = password;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  foundUser.passwordConfirm = passwordConfirm;
+
+  await foundUser.save();
+
+  return res.status(200).json({ ok: true, token });
+});
+export const forgotPassword: RequestHandler = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+  if (!email) {
+    return next(new AppError('Email for sending reset password token is required!', 401));
+  }
+  const foundUser: typeof User | null = await User.findOne({ email });
+
+  if (!foundUser) {
+    return next(new AppError('Could not find a user with given email', 200));
+  }
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  const generatedToken = foundUser.createResetPasswordToken();
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  await foundUser.save({ validateBeforeSave: false }); // so that it doesn't require us to put passwordConfirm on the User document
+  const resetTokenUrl = `${req.protocol}://api/v1/reset_password/${generatedToken}`;
+  const text = `If you forgot your password, send PATCH request with your new password to ${resetTokenUrl}, othwerwise ignore that email whatsoever.`;
+
+  try {
+    await sendEmail({
+      from: 'nadawca@nadawca.nadawca',
+      subject: 'resetujemy haslo:)',
+      text,
+      to: email
+    });
+  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    foundUser.resetPasswordToken = undefined;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    foundUser.resetPasswordExpires = undefined;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    await foundUser.save({ validateBeforeSave: false }); // so that it doesn't require us to put passwordConfirm on the User document
+
+    return next(new AppError('Could not send email to the user. Try again later', 500));
+  }
+
+  return res.status(200).json({ ready: false, generatedToken, foundUser, email, text, resetTokenUrl });
+});
+
+//middleware
 
 export const requireLogin: RequestHandler = catchAsync(
   async (req: Request & { user?: UserType | undefined }, res: Response, next: NextFunction) => {
@@ -65,7 +143,7 @@ export const requireLogin: RequestHandler = catchAsync(
       return next(new AppError('User no longer exist. Log into different account', 403));
     }
 
-    const tokenIsOutdated = isTokenOutdated({ passwordChangedAt: foundUser.passwordChangedAt, iat, exp });
+    const tokenIsOutdated = isResetTokenOutdated({ passwordChangedAt: foundUser.passwordChangedAt, iat, exp });
 
     if (tokenIsOutdated) {
       return next(new AppError('Token is outdated. Please, login again.', 401));
@@ -81,4 +159,12 @@ export const requireArtist: RequestHandler = (req: Request & { user?: UserType |
     return next(new AppError('You need to be an artist here to see that page.', 401));
   }
   next();
+};
+
+export const me: RequestHandler = (req: Request & { user?: UserType | undefined }, res, next) => {
+  const { user } = req;
+  if (!user) {
+    return next(new AppError('You need to login!', 401));
+  }
+  res.status(200).json({ ok: true, user });
 };
