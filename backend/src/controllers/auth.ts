@@ -71,6 +71,7 @@ export const resetPassword: RequestHandler = catchAsync(async (req, res, next) =
 
   return res.status(200).json({ ok: true, token });
 });
+
 export const forgotPassword: RequestHandler = catchAsync(async (req, res, next) => {
   const { email } = req.body;
   if (!email) {
@@ -116,6 +117,51 @@ export const forgotPassword: RequestHandler = catchAsync(async (req, res, next) 
   return res.status(200).json({ ready: false, generatedToken, foundUser, email, text, resetTokenUrl });
 });
 
+export const updatePassword: RequestHandler = catchAsync(
+  async (req: Request & { user?: UserType | undefined }, res, next) => {
+    const { user, body } = req;
+
+    if (!user) {
+      return next(new AppError('You need to login!', 401));
+    }
+    const { email } = user;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const userWithPassword = await User.findOne({ email }).select('+password');
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const { password: hashedCurrentPassword } = userWithPassword;
+    const { currentPassword: candidateCurrentPassword, newPassword, newPasswordConfirm } = body;
+
+    const passwordOk = await bcrypt.compare(candidateCurrentPassword, hashedCurrentPassword);
+    if (!passwordOk) {
+      return next(new AppError('Incorrect password. Try again later', 400));
+    }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    user.password = newPassword;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    user.passwordConfirm = newPasswordConfirm;
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    await user.save();
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return loginAndSendResponse({ id: user._id, res });
+  }
+);
+export const me: RequestHandler = (req: Request & { user?: UserType | undefined }, res, next) => {
+  const { user } = req;
+  if (!user) {
+    return next(new AppError('You need to login!', 401));
+  }
+  res.status(200).json({ ok: true, user });
+};
+
 //middleware
 
 export const requireLogin: RequestHandler = catchAsync(
@@ -159,12 +205,4 @@ export const requireArtist: RequestHandler = (req: Request & { user?: UserType |
     return next(new AppError('You need to be an artist here to see that page.', 401));
   }
   next();
-};
-
-export const me: RequestHandler = (req: Request & { user?: UserType | undefined }, res, next) => {
-  const { user } = req;
-  if (!user) {
-    return next(new AppError('You need to login!', 401));
-  }
-  res.status(200).json({ ok: true, user });
 };

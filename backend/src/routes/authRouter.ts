@@ -1,12 +1,15 @@
 import express from 'express';
-import { register, login, resetPassword, forgotPassword, me, requireLogin } from 'src/controllers/auth';
+import { register, login, resetPassword, forgotPassword, me, requireLogin, updatePassword } from 'src/controllers/auth';
 
 const router = express.Router();
 
-router.route('/me').get(requireLogin, me);
 router.route('/register').post(register);
 router.route('/login').post(login);
 router.route('/reset_password/:token').post(resetPassword);
+
+router.use(requireLogin); // from now on require login
+router.route('/me').get(me);
 router.route('/forgot_password').post(forgotPassword);
+router.route('/update_password').post(updatePassword);
 
 export default router;
