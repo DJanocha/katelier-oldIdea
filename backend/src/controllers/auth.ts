@@ -154,6 +154,27 @@ export const updatePassword: RequestHandler = catchAsync(
     return loginAndSendResponse({ id: user._id, res });
   }
 );
+
+export const updateMe: RequestHandler = catchAsync(
+  async (req: Request & { user?: UserType | undefined }, res, next) => {
+    const { body, user } = req;
+
+    const { newPassword, newPasswordConfirm } = body;
+
+    if (newPassword || newPasswordConfirm) {
+      return next(new AppError('In order to update password. Visit /updatePassword', 401));
+    }
+    const propertiesBlockedFromBeingModified = ['role'];
+
+    propertiesBlockedFromBeingModified.forEach((prop) => delete body[prop]);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    const updatedUser = await User.findByIdAndUpdate(user._id, body, { new: true, runValidators: true });
+
+    return res.status(200).json({ ok: true, user: updatedUser });
+  }
+);
+
 export const me: RequestHandler = (req: Request & { user?: UserType | undefined }, res, next) => {
   const { user } = req;
   if (!user) {
