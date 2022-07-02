@@ -5,3 +5,4 @@ export { generateHandlers } from 'src/utils/handlersGenerator';
 export { isDateValid } from 'src/utils/isDateValid';
 export { getUri } from 'src/utils/getDatabaseUri';
 export { name } from 'src/utils/modelsName';
+export { isResetTokenOutdated } from 'src/utils/authUtils';
