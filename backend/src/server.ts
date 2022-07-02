@@ -9,7 +9,7 @@ import { globalErrorHandler } from 'src/controllers/globalErrorHandler';
 
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-const app = express();
+export const app = express();
 app.use(express.json());
 
 const port = Number(process.env.SERVER_PORT) || 1234;
