@@ -1,4 +1,5 @@
 import { Express, Request, Response, NextFunction } from 'express';
+import rateLimiter from 'express-rate-limit';
 import { AppError } from 'src/utils';
 import materialsRouter from 'src/routes/materialsRouter';
 import stepsRouter from 'src/routes/stepsRouter';
@@ -7,12 +8,18 @@ import usersRouter from 'src/routes/usersRouter';
 import categoriesRouter from 'src/routes/categoriesRouter';
 import activitiesRouter from 'src/routes/activitiesRouter';
 import authRouter from 'src/routes/authRouter';
-
 const unknownRouteHandler = (req: Request, res: Response, next: NextFunction) => {
   next(new AppError(`Could not find ${req.originalUrl} route.`, 404));
 };
 
+const limitRate = rateLimiter({
+  max: 1000,
+  windowMs: 3600 * 1000,
+  message: 'Too many request for your IP. Try again in an hour.'
+});
+
 export const useAllRoutesBy = (app: Express) => {
+  app.use('/api', limitRate);
   app.use('/api/materials', materialsRouter);
   app.use('/api/steps', stepsRouter);
   app.use('/api/projects', projectsRouter);
