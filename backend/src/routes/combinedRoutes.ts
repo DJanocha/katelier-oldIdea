@@ -1,5 +1,11 @@
 import { Express, Request, Response, NextFunction } from 'express';
 import rateLimiter from 'express-rate-limit';
+import helmet from 'helmet';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+import xssClan from 'xss-clean';
+import ExpressMongoSanitize from 'express-mongo-sanitize';
+import morgan from 'morgan';
 import { AppError } from 'src/utils';
 import materialsRouter from 'src/routes/materialsRouter';
 import stepsRouter from 'src/routes/stepsRouter';
@@ -19,6 +25,12 @@ const limitRate = rateLimiter({
 });
 
 export const useAllRoutesBy = (app: Express) => {
+  app.use(helmet());
+  app.use(xssClan());
+  app.use(ExpressMongoSanitize());
+  if (process.env.NODE_ENV === 'development') {
+    app.use(morgan('dev'));
+  }
   app.use('/api', limitRate);
   app.use('/api/materials', materialsRouter);
   app.use('/api/steps', stepsRouter);
