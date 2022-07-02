@@ -15,7 +15,7 @@ export const register: RequestHandler = catchAsync(async (req, res, next) => {
   const newUser = new User(acceptedUserData);
   await newUser.save();
 
-  return loginAndSendResponse({ id: newUser._id, res });
+  return loginAndSendResponse({ user: newUser, res });
 });
 export const login: RequestHandler = catchAsync(async (req, res, next) => {
   const emailPasswordMessage = 'Email or password not correct.';
@@ -34,7 +34,7 @@ export const login: RequestHandler = catchAsync(async (req, res, next) => {
   if (!passwordOk) {
     return next(new AppError(emailPasswordMessage, 400));
   }
-  return loginAndSendResponse({ id: user._id, res });
+  return loginAndSendResponse({ user, res });
 });
 
 export const resetPassword: RequestHandler = catchAsync(async (req, res, next) => {
@@ -151,7 +151,7 @@ export const updatePassword: RequestHandler = catchAsync(
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return loginAndSendResponse({ id: user._id, res });
+    return loginAndSendResponse({ user, res });
   }
 );
 
