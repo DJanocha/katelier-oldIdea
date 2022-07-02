@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import mongoose, { Model } from 'mongoose';
+import mongoose, { FilterQuery, Model, Query, QuerySelector } from 'mongoose';
 import { generateResetToken } from 'src/utils/authUtils';
 import isEmail from 'validator/lib/isEmail';
 const { Schema, model } = mongoose;
@@ -18,6 +18,7 @@ export type UserType = {
   passwordChangedAt: Date;
   resetPassword: string;
   resetPasswordExpires: number;
+  active: boolean;
 };
 
 const UserSchema = new Schema<UserType, Model<UserType>>({
@@ -71,7 +72,12 @@ const UserSchema = new Schema<UserType, Model<UserType>>({
   },
   passwordChangedAt: { type: Date },
   resetPassword: String,
-  resetPasswordExpires: Date
+  resetPasswordExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false
+  }
 });
 UserSchema.pre(/^save/, async function (this: UserType & { isModified: (x: keyof UserType) => boolean }, next) {
   if (!this.isModified('password')) {
@@ -89,6 +95,13 @@ UserSchema.pre(/^save/, async function (this: UserType & { isModified: (x: keyof
     //@ts-ignore
     this.passwordChangedAt = Date.now();
   }
+  next();
+});
+UserSchema.pre(/^find/, async function (next) {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  this.find({ active: { $ne: false } });
+
   next();
 });
 

@@ -174,7 +174,6 @@ export const updateMe: RequestHandler = catchAsync(
     return res.status(200).json({ ok: true, user: updatedUser });
   }
 );
-
 export const me: RequestHandler = (req: Request & { user?: UserType | undefined }, res, next) => {
   const { user } = req;
   if (!user) {
@@ -182,6 +181,20 @@ export const me: RequestHandler = (req: Request & { user?: UserType | undefined 
   }
   res.status(200).json({ ok: true, user });
 };
+
+export const deleteMe: RequestHandler = catchAsync(
+  async (req: Request & { user?: UserType | undefined }, res, next) => {
+    const { user } = req;
+    if (!user) {
+      return next(new AppError('You need to login!', 401));
+    }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    await User.findByIdAndUpdate(user._id, { active: false }, { new: true }).select('+active');
+
+    res.status(204).json({});
+  }
+);
 
 //middleware
 

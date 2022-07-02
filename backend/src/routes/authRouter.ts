@@ -7,7 +7,8 @@ import {
   me,
   requireLogin,
   updatePassword,
-  updateMe
+  updateMe,
+  deleteMe
 } from 'src/controllers/auth';
 
 const router = express.Router();
@@ -21,5 +22,6 @@ router.route('/me').get(me);
 router.route('/updateMe').get(updateMe);
 router.route('/forgot_password').post(forgotPassword);
 router.route('/update_password').post(updatePassword);
+router.route('/deleteMe').delete(deleteMe);
 
 export default router;
