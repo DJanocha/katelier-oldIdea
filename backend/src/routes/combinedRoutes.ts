@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import xssClan from 'xss-clean';
 import ExpressMongoSanitize from 'express-mongo-sanitize';
 import morgan from 'morgan';
+import { globalErrorHandler } from 'src/controllers/globalErrorHandler';
 import { AppError } from 'src/utils';
 import materialsRouter from 'src/routes/materialsRouter';
 import stepsRouter from 'src/routes/stepsRouter';
@@ -23,14 +24,17 @@ const limitRate = rateLimiter({
   windowMs: 3600 * 1000,
   message: 'Too many request for your IP. Try again in an hour.'
 });
-
-export const useAllRoutesBy = (app: Express) => {
+export const applyMiddleware = (app: Express) => {
+  app.use(globalErrorHandler);
   app.use(helmet());
   app.use(xssClan());
   app.use(ExpressMongoSanitize());
   if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
   }
+};
+
+export const useAllRoutesBy = (app: Express) => {
   app.use('/api', limitRate);
   app.use('/api/materials', materialsRouter);
   app.use('/api/steps', stepsRouter);

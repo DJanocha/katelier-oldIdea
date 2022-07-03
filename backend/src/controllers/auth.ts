@@ -1,11 +1,10 @@
 import { promisify } from 'util';
 import { Request, Response, NextFunction, RequestHandler } from 'express';
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { AppError, catchAsync, isResetTokenOutdated } from 'src/utils';
 import { User, UserType } from 'src/models';
 import { sendEmail } from 'src/utils/emails';
-import { loginAndSendResponse } from 'src/utils/authUtils';
+import { loginAndSendResponse, loginAs, updateUserPassword, updateUserData } from 'src/utils/authUtils';
 import { hashTheResetToken } from 'src/utils/hashTheResetToken';
 
 //routes
@@ -18,22 +17,11 @@ export const register: RequestHandler = catchAsync(async (req, res, next) => {
   return loginAndSendResponse({ user: newUser, res });
 });
 export const login: RequestHandler = catchAsync(async (req, res, next) => {
-  const emailPasswordMessage = 'Email or password not correct.';
-  const { email, password: candidatePassword } = req.body;
-  if (!email || !candidatePassword) {
+  const { email, password: pass } = req.body;
+  if (!email || !pass) {
     return next(new AppError('Please provide email and password', 400));
   }
-  const user = await User.findOne({ email }).select('+password');
-  if (!user) {
-    return next(new AppError(emailPasswordMessage, 400));
-  }
-  const { password } = user;
-
-  const passwordOk = await bcrypt.compare(candidatePassword, password);
-
-  if (!passwordOk) {
-    return next(new AppError(emailPasswordMessage, 400));
-  }
+  const user = await loginAs({ email, pass });
   return loginAndSendResponse({ user, res });
 });
 
@@ -125,33 +113,13 @@ export const updatePassword: RequestHandler = catchAsync(
       return next(new AppError('You need to login!', 401));
     }
     const { email } = user;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const userWithPassword = await User.findOne({ email }).select('+password');
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const { password: hashedCurrentPassword } = userWithPassword;
-    const { currentPassword: candidateCurrentPassword, newPassword, newPasswordConfirm } = body;
+    const { currentPassword, newPassword, newPasswordConfirm } = body;
 
-    const passwordOk = await bcrypt.compare(candidateCurrentPassword, hashedCurrentPassword);
-    if (!passwordOk) {
-      return next(new AppError('Incorrect password. Try again later', 400));
-    }
+    const updatedUser = await updateUserPassword({ currentPassword, email, newPassword, newPasswordConfirm });
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    user.password = newPassword;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    user.passwordConfirm = newPasswordConfirm;
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    await user.save();
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return loginAndSendResponse({ user, res });
+    return loginAndSendResponse({ user: updatedUser, res });
   }
 );
 
@@ -159,17 +127,12 @@ export const updateMe: RequestHandler = catchAsync(
   async (req: Request & { user?: UserType | undefined }, res, next) => {
     const { body, user } = req;
 
-    const { newPassword, newPasswordConfirm } = body;
+    const { email } = user as { email: string | undefined };
 
-    if (newPassword || newPasswordConfirm) {
-      return next(new AppError('In order to update password. Visit /updatePassword', 401));
+    if (!user || !email) {
+      return next(new AppError('You need to login!', 401));
     }
-    const propertiesBlockedFromBeingModified = ['role'];
-
-    propertiesBlockedFromBeingModified.forEach((prop) => delete body[prop]);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
-    const updatedUser = await User.findByIdAndUpdate(user._id, body, { new: true, runValidators: true });
+    const updatedUser = await updateUserData({ email, data: body });
 
     return res.status(200).json({ ok: true, user: updatedUser });
   }

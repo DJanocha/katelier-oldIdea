@@ -1,10 +1,13 @@
 import { Response } from 'express';
 import jwt, { Secret } from 'jsonwebtoken';
 import { Types } from 'mongoose';
-import { UserType } from 'src/models';
+import bcrypt from 'bcryptjs';
+import { User, UserType } from 'src/models';
 import { hashTheResetToken } from 'src/utils/hashTheResetToken';
 import { getRandomString } from 'src/utils/randomString';
+import { AppError } from './AppError';
 const trimTo10 = (numberToTrim: number) => Number(`${numberToTrim}`.slice(0, 10));
+export const propertiesBlockedFromBeingModified = ['role'];
 export const isResetTokenOutdated = ({
   passwordChangedAt,
   iat,
@@ -72,4 +75,66 @@ export const loginAndSendResponse = ({ user, res }: { user: UserType; res: Respo
   user.password = undefined;
 
   return res.status(200).json({ ok: true, token, user });
+};
+
+export const loginAs = async ({ email, pass }: { email: string; pass: string }) => {
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) {
+    throw new AppError('Incorrect email or password', 400);
+  }
+  const { password } = user;
+  const passwordOk = await bcrypt.compare(pass, password);
+
+  if (!passwordOk) {
+    throw new AppError('Incorrect email or password', 400);
+  }
+  return user;
+};
+export type PasswordVariant = 'currentPassword' | 'newPassword' | 'newPasswordConfirm';
+export interface UpdateUserPasswordInput extends Record<PasswordVariant, string> {
+  email: string;
+}
+export const updateUserPassword = async ({
+  currentPassword,
+  email,
+  newPassword,
+  newPasswordConfirm
+}: UpdateUserPasswordInput) => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const user = await User.findOne({ email }).select('+password');
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const { password: hashedCurrentPassword } = user;
+  const passwordOk = await bcrypt.compare(currentPassword, hashedCurrentPassword);
+  if (!passwordOk) {
+    throw new AppError('Incorrect password. Try again later', 400);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  user.password = newPassword;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  user.passwordConfirm = newPasswordConfirm;
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  await user.save();
+  return user;
+};
+
+export const updateUserData = async ({ email, data }: { email: string; data: Record<string, string> }) => {
+  if (data.newPassword || data.newPasswordConfirm) {
+    throw new AppError('In order to update password. Visit /updatePassword', 401);
+  }
+
+  propertiesBlockedFromBeingModified.forEach((prop) => delete data[prop]);
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  const updatedUser = await User.findOneAndUpdate({ email }, data, { new: true, runValidators: true });
+
+  return updatedUser;
 };
