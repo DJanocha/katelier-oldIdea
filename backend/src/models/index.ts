@@ -1,6 +1,6 @@
-export { Activity, ActivityType } from 'src/models/activities';
-export { Category, CategoryType } from 'src/models/categories';
-export { User, UserType } from 'src/models/users';
-export { Material, MaterialType } from 'src/models/materials';
-export { Project, ProjectType } from 'src/models/projects';
-export { Step, StepType } from 'src/models/steps';
+export { Activity, IActivity } from 'src/models/activities';
+export { Category, ICategory } from 'src/models/categories';
+export { User, IUser } from 'src/models/users';
+export { Material, IMaterial } from 'src/models/materials';
+export { Project, IProject } from 'src/models/projects';
+export { Step, IStep } from 'src/models/steps';

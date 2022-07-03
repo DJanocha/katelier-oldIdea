@@ -2,10 +2,11 @@ import { promisify } from 'util';
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import { AppError, catchAsync, isResetTokenOutdated } from 'src/utils';
-import { User, UserType } from 'src/models';
+import { User, IUser } from 'src/models';
 import { sendEmail } from 'src/utils/emails';
 import { loginAndSendResponse, loginAs, updateUserPassword, updateUserData } from 'src/utils/authUtils';
 import { hashTheResetToken } from 'src/utils/hashTheResetToken';
+import { UserDocument } from 'src/models/users';
 
 //routes
 export const register: RequestHandler = catchAsync(async (req, res, next) => {
@@ -31,7 +32,7 @@ export const resetPassword: RequestHandler = catchAsync(async (req, res, next) =
 
   const hashedToken = hashTheResetToken(token);
 
-  const foundUser = await User.findOne({
+  const foundUser: UserDocument | null = await User.findOne({
     resetPassword: hashedToken,
     resetPasswordExpires: {
       $gt: Date.now()
@@ -106,7 +107,7 @@ export const forgotPassword: RequestHandler = catchAsync(async (req, res, next) 
 });
 
 export const updatePassword: RequestHandler = catchAsync(
-  async (req: Request & { user?: UserType | undefined }, res, next) => {
+  async (req: Request & { user?: IUser | undefined }, res, next) => {
     const { user, body } = req;
 
     if (!user) {
@@ -123,21 +124,19 @@ export const updatePassword: RequestHandler = catchAsync(
   }
 );
 
-export const updateMe: RequestHandler = catchAsync(
-  async (req: Request & { user?: UserType | undefined }, res, next) => {
-    const { body, user } = req;
+export const updateMe: RequestHandler = catchAsync(async (req: Request & { user?: IUser | undefined }, res, next) => {
+  const { body, user } = req;
 
-    const { email } = user as { email: string | undefined };
+  const { email } = user as { email: string | undefined };
 
-    if (!user || !email) {
-      return next(new AppError('You need to login!', 401));
-    }
-    const updatedUser = await updateUserData({ email, data: body });
-
-    return res.status(200).json({ ok: true, user: updatedUser });
+  if (!user || !email) {
+    return next(new AppError('You need to login!', 401));
   }
-);
-export const me: RequestHandler = (req: Request & { user?: UserType | undefined }, res, next) => {
+  const updatedUser = await updateUserData({ email, data: body });
+
+  return res.status(200).json({ ok: true, user: updatedUser });
+});
+export const me: RequestHandler = (req: Request & { user?: IUser | undefined }, res, next) => {
   const { user } = req;
   if (!user) {
     return next(new AppError('You need to login!', 401));
@@ -145,24 +144,22 @@ export const me: RequestHandler = (req: Request & { user?: UserType | undefined 
   res.status(200).json({ ok: true, user });
 };
 
-export const deleteMe: RequestHandler = catchAsync(
-  async (req: Request & { user?: UserType | undefined }, res, next) => {
-    const { user } = req;
-    if (!user) {
-      return next(new AppError('You need to login!', 401));
-    }
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
-    await User.findByIdAndUpdate(user._id, { active: false }, { new: true }).select('+active');
-
-    res.status(204).json({});
+export const deleteMe: RequestHandler = catchAsync(async (req: Request & { user?: IUser | undefined }, res, next) => {
+  const { user } = req;
+  if (!user) {
+    return next(new AppError('You need to login!', 401));
   }
-);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  await User.findByIdAndUpdate(user._id, { active: false }, { new: true }).select('+active');
+
+  res.status(204).json({});
+});
 
 //middleware
 
 export const requireLogin: RequestHandler = catchAsync(
-  async (req: Request & { user?: UserType | undefined }, res: Response, next: NextFunction) => {
+  async (req: Request & { user?: IUser | undefined }, res: Response, next: NextFunction) => {
     let token;
     if (req.headers.authorization?.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ').pop();
@@ -196,7 +193,7 @@ export const requireLogin: RequestHandler = catchAsync(
     next();
   }
 );
-export const requireArtist: RequestHandler = (req: Request & { user?: UserType | undefined }, res, next) => {
+export const requireArtist: RequestHandler = (req: Request & { user?: IUser | undefined }, res, next) => {
   const isArtist = req.user?.role === 'artist';
   if (!isArtist) {
     return next(new AppError('You need to be an artist here to see that page.', 401));

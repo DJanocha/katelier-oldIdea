@@ -1,6 +1,8 @@
-import { Schema, Types, model } from 'mongoose';
+import { Schema, Types, model, Document } from 'mongoose';
+import { ProjectModel } from './projects';
+import { UserModel } from './users';
 
-type TransactionType = {
+export interface ITransaction {
   client: Types.ObjectId;
   artist: Types.ObjectId;
   accepted: boolean;
@@ -9,9 +11,17 @@ type TransactionType = {
   creation_date: Date;
   deadline: Date;
   project: Types.ObjectId;
-};
+}
 
-const TransactionSchema = new Schema<TransactionType>({
+export interface TransactionDocument extends ITransaction, Document {
+  client: UserModel['_id'];
+  artist: UserModel['_id'];
+  project: ProjectModel['_id'];
+}
+
+export type TransactionModel = TransactionDocument;
+
+const TransactionSchema = new Schema<TransactionDocument, TransactionModel>({
   client: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -40,7 +50,4 @@ const TransactionSchema = new Schema<TransactionType>({
   }
 });
 
-export const Transaction = model<TransactionType>(
-  'Transaction',
-  TransactionSchema
-);
+export const Transaction = model<TransactionDocument, TransactionModel>('Transaction', TransactionSchema);

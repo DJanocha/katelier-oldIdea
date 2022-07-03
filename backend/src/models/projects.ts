@@ -1,13 +1,27 @@
-import { Schema, model, Types } from 'mongoose';
+import { Schema, model, Types, Document } from 'mongoose';
+import { StepModel } from './steps';
 
-export type ProjectType = {
+export interface IProject {
   name: string;
   description: string;
   steps: Types.ObjectId[];
   client_info: string;
-};
+}
 
-const ProjectSchema = new Schema<ProjectType>({
+export interface ProjectDocument extends IProject, Document {
+  steps: Types.Array<StepModel['_id']>;
+}
+
+export interface ProjectDocumentsWithSteps extends ProjectDocument {
+  steps: Types.Array<StepModel>;
+}
+
+/*Now it can be as a type. If you want to add some 
+static functions, you better change
+it to interface */
+export type ProjectModel = ProjectDocument;
+
+const ProjectSchema = new Schema<ProjectDocument, ProjectModel>({
   name: {
     type: String,
     required: true,
@@ -18,4 +32,4 @@ const ProjectSchema = new Schema<ProjectType>({
   client_info: String
 });
 
-export const Project = model<ProjectType>('Project', ProjectSchema);
+export const Project = model<ProjectDocument, ProjectModel>('Project', ProjectSchema);

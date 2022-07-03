@@ -1,17 +1,19 @@
 import bcrypt from 'bcryptjs';
-import mongoose, { FilterQuery, Model, Query, QuerySelector } from 'mongoose';
+import mongoose, { Document, FilterQuery, Model, Query, QuerySelector, Types } from 'mongoose';
 import { generateResetToken } from 'src/utils/authUtils';
 import isEmail from 'validator/lib/isEmail';
+import { CategoryModel } from './categories';
 const { Schema, model } = mongoose;
-
-export type UserType = {
+//https://github.com/Automattic/mongoose/issues/9535#issuecomment-727039299
+type Role = 'client' | 'artist';
+export interface IUser {
   name: string;
   tel: string;
   email: string;
   ig: string;
   facebook: string;
   image?: string;
-  role: 'client' | 'artist';
+  role: Role;
   categories?: mongoose.Types.ObjectId[];
   password: string;
   passwordConfirm: string | undefined;
@@ -19,9 +21,21 @@ export type UserType = {
   resetPassword: string;
   resetPasswordExpires: number;
   active: boolean;
-};
+}
+export interface UserDocument extends IUser, Document {
+  categories: Types.Array<CategoryModel['_id']>;
+  createResetPasswordToken(): string;
+}
+export interface UserDocumentWithCategories extends UserDocument {
+  // if line below creates errors, try to make it an array of ICategory instead of categoryModel (not to extend Model, Document or whatever)
+  categories: Types.Array<CategoryModel>;
+}
 
-const UserSchema = new Schema<UserType, Model<UserType>>({
+/*Now it can be as a type. If you want to add some 
+static functions, you better change
+it to interface */
+export type UserModel = UserDocument;
+const UserSchema = new Schema<IUser, Model<IUser>>({
   name: { type: String, requried: true },
   tel: { type: String, requried: false },
   email: {
@@ -51,7 +65,7 @@ const UserSchema = new Schema<UserType, Model<UserType>>({
     // minlength: 8,
     validate: {
       message: 'Password has to be at least 8 characters long.',
-      validator: function (this: UserType) {
+      validator: function (this: UserDocument) {
         return this.password.length >= 8;
       }
     },
@@ -63,8 +77,7 @@ const UserSchema = new Schema<UserType, Model<UserType>>({
     minlength: 8,
     validate: {
       message: 'Passwords need to be identical.',
-      // eslint-disable-next-line no-unused-vars
-      validator: function (this: UserType) {
+      validator: function (this: IUser) {
         return this.password === this.passwordConfirm;
       }
     },
@@ -79,7 +92,7 @@ const UserSchema = new Schema<UserType, Model<UserType>>({
     select: false
   }
 });
-UserSchema.pre(/^save/, async function (this: UserType & { isModified: (x: keyof UserType) => boolean }, next) {
+UserSchema.pre<UserDocument>(/^save/, async function (this: UserDocument, next) {
   if (!this.isModified('password')) {
     next();
   }
@@ -88,24 +101,18 @@ UserSchema.pre(/^save/, async function (this: UserType & { isModified: (x: keyof
   }
   this.password = await bcrypt.hash(this.password, 12);
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
   if (!this.isNew) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
-    this.passwordChangedAt = Date.now();
+    this.passwordChangedAt = new Date();
   }
   next();
 });
-UserSchema.pre(/^find/, async function (next) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
+UserSchema.pre<Query<UserDocument, UserDocument>>(/^find/, async function (next) {
   this.find({ active: { $ne: false } });
 
   next();
 });
 
-UserSchema.methods.createResetPasswordToken = function (this: UserType) {
+UserSchema.methods.createResetPasswordToken = function (this: UserDocument) {
   const { expiresIn, hashed, token } = generateResetToken();
   this.resetPassword = hashed;
   this.resetPasswordExpires = expiresIn;
@@ -114,4 +121,4 @@ UserSchema.methods.createResetPasswordToken = function (this: UserType) {
 };
 
 UserSchema.index({ email: 1 }, { unique: true });
-export const User = model<UserType>('User', UserSchema);
+export const User = model<IUser>('User', UserSchema);

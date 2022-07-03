@@ -2,7 +2,7 @@ import { Response } from 'express';
 import jwt, { Secret } from 'jsonwebtoken';
 import { Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { User, UserType } from 'src/models';
+import { User, IUser } from 'src/models';
 import { hashTheResetToken } from 'src/utils/hashTheResetToken';
 import { getRandomString } from 'src/utils/randomString';
 import { AppError } from './AppError';
@@ -55,7 +55,7 @@ type CookieOptionsType = {
   secure?: boolean;
 };
 
-export const loginAndSendResponse = ({ user, res }: { user: UserType; res: Response }) => {
+export const loginAndSendResponse = ({ user, res }: { user: IUser; res: Response }) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   const token = generateJWT(user._id);
