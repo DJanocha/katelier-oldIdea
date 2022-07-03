@@ -4,8 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import mongoose from 'mongoose';
 import { getUri } from 'src/utils/getDatabaseUri';
-import { useAllRoutesBy } from 'src/routes/combinedRoutes';
-import { globalErrorHandler } from 'src/controllers/globalErrorHandler';
+import { applyMiddleware, useAllRoutesBy } from 'src/routes/combinedRoutes';
 
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
@@ -23,8 +22,8 @@ async function connectToDb() {
     console.log({ error });
   }
 }
+applyMiddleware(app);
 useAllRoutesBy(app);
-app.use(globalErrorHandler);
 app.listen(port, () => {
   console.log(`running on port ${port}`);
 });
