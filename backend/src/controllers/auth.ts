@@ -1,6 +1,5 @@
 import { promisify } from 'util';
 import { Request, Response, NextFunction, RequestHandler } from 'express';
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { AppError, catchAsync, isResetTokenOutdated } from 'src/utils';
 import { User, UserType } from 'src/models';

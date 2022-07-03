@@ -90,18 +90,16 @@ export const loginAs = async ({ email, pass }: { email: string; pass: string }) 
   }
   return user;
 };
-
+export type PasswordVariant = 'currentPassword' | 'newPassword' | 'newPasswordConfirm';
+export interface UpdateUserPasswordInput extends Record<PasswordVariant, string> {
+  email: string;
+}
 export const updateUserPassword = async ({
   currentPassword,
   email,
   newPassword,
   newPasswordConfirm
-}: {
-  currentPassword: string;
-  newPassword: string;
-  newPasswordConfirm: string;
-  email: string;
-}) => {
+}: UpdateUserPasswordInput) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const user = await User.findOne({ email }).select('+password');

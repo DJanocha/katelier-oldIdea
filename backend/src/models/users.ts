@@ -22,7 +22,7 @@ export type UserType = {
 };
 
 const UserSchema = new Schema<UserType, Model<UserType>>({
-  name: { type: String, requried: true, unique: true },
+  name: { type: String, requried: true },
   tel: { type: String, requried: false },
   email: {
     type: String,
