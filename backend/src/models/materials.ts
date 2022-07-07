@@ -39,4 +39,4 @@ const MaterialSchema = new Schema<MaterialDocument, MaterialModel>({
   img: String
 });
 
-export const Material = model<MaterialDocument, MaterialModel>('Material', MaterialSchema);
+export const Material = model<MaterialDocument>('Material', MaterialSchema);

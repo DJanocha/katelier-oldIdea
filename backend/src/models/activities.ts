@@ -86,4 +86,4 @@ ActivitySchema.virtual('isTemplate').get(function () {
   return this.date == null;
 });
 
-export const Activity = model<ActivityDocument, ActivityModel>('Activity', ActivitySchema);
+export const Activity = model<ActivityDocument>('Activity', ActivitySchema);

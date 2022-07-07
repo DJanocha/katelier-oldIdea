@@ -32,4 +32,4 @@ const ProjectSchema = new Schema<ProjectDocument, ProjectModel>({
   client_info: String
 });
 
-export const Project = model<ProjectDocument, ProjectModel>('Project', ProjectSchema);
+export const Project = model<ProjectDocument>('Project', ProjectSchema);

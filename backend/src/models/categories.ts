@@ -36,4 +36,4 @@ const CategorySchema = new Schema<CategoryDocument, CategoryModel>({
   description: String
 });
 
-export const Category = model<CategoryDocument, CategoryModel>('Category', CategorySchema);
+export const Category = model<CategoryDocument>('Category', CategorySchema);

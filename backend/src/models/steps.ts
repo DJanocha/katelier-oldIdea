@@ -43,4 +43,4 @@ const StepSchema = new Schema<StepDocument, StepModel>({
   }
 });
 
-export const Step = model<StepDocument, StepModel>('Step', StepSchema);
+export const Step = model<StepDocument>('Step', StepSchema);
