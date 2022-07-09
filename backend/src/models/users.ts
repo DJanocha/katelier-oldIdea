@@ -18,8 +18,8 @@ export interface IUser {
   password: string;
   passwordConfirm: string | undefined;
   passwordChangedAt: Date;
-  resetPassword: string;
-  resetPasswordExpires: number;
+  resetPassword?: string;
+  resetPasswordExpires?: number;
   active: boolean;
 }
 export interface UserDocument extends IUser, Document {
