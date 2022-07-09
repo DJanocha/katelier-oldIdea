@@ -1,13 +1,26 @@
-import { Schema, model, Types } from 'mongoose';
-export type CategoryType = {
+import { Schema, model, Types, Document } from 'mongoose';
+import { ProjectModel } from './projects';
+export interface ICategory {
   name: string;
   description: string;
   color: string;
   icon: string;
   projects: Types.ObjectId[];
-};
+}
 
-const CategorySchema = new Schema<CategoryType>({
+export interface CategoryDocument extends ICategory, Document {
+  projects: Types.Array<ProjectModel['_id']>;
+}
+export interface CategoryDocumentWithProjects extends CategoryDocument {
+  projects: Types.Array<ProjectModel>;
+}
+
+/*Now it can be as a type. If you want to add some 
+static functions, you better change
+it to interface */
+export type CategoryModel = CategoryDocument;
+
+const CategorySchema = new Schema<CategoryDocument, CategoryModel>({
   name: {
     type: String,
     required: [true, 'Category needs to have a name'],
@@ -23,4 +36,4 @@ const CategorySchema = new Schema<CategoryType>({
   description: String
 });
 
-export const Category = model<CategoryType>('Category', CategorySchema);
+export const Category = model<CategoryDocument>('Category', CategorySchema);

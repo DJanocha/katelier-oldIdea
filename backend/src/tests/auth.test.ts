@@ -1,4 +1,4 @@
-import { User, UserType } from 'src/models';
+import { User } from 'src/models';
 import { connectDB, clearDB, closeDB } from 'src/tests/db';
 import {
   loginAs,

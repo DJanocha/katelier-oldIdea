@@ -1,15 +1,32 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 
 const { Schema, model } = mongoose;
 
-export type MaterialType = {
+export interface IMaterial {
   name: string;
   description: string;
   tags: string[];
   img: string;
-};
+}
 
-const MaterialSchema = new Schema<MaterialType>({
+export interface MaterialDocument extends IMaterial, Document {
+  tags: Types.Array<string>;
+}
+/*
+ Now it can be as a type. If you 
+ want to add some static functions, 
+ you better change
+it to interface like below:
+export interface MaterialModel extends MaterialDocument{
+  //those functions are like example ones to
+  getAllBelowPercentage(percentage: number): Promise<Types.Array<MaterialDocument>>
+  getAllEmpty():Promise<Types.Array<MaterialDocument>>
+}
+
+*/
+export type MaterialModel = MaterialDocument;
+
+const MaterialSchema = new Schema<MaterialDocument, MaterialModel>({
   name: {
     type: String,
     required: [true, 'name required']
@@ -22,4 +39,4 @@ const MaterialSchema = new Schema<MaterialType>({
   img: String
 });
 
-export const Material = model<MaterialType>('Material', MaterialSchema);
+export const Material = model<MaterialDocument>('Material', MaterialSchema);

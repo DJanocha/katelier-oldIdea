@@ -1,6 +1,7 @@
-import { Schema, model, Types } from 'mongoose';
+import { Schema, model, Types, Document } from 'mongoose';
+import { MaterialModel } from './materials';
 
-export type StepType = {
+export interface IStep {
   category: string;
   project: string;
   step_number: number;
@@ -10,9 +11,21 @@ export type StepType = {
   used_materials: Types.ObjectId[];
   activity: Types.ObjectId;
   description: string;
-};
+}
 
-const StepSchema = new Schema<StepType>({
+export interface StepDocument extends IStep, Document {
+  used_materials: Types.Array<MaterialModel['_id']>;
+}
+export interface StepDocumentWithMaterials extends StepDocument {
+  used_materials: Types.Array<MaterialModel>;
+}
+
+/*Now it can be as a type. If you want to add some 
+static functions, you better change
+it to interface */
+export type StepModel = StepDocument;
+
+const StepSchema = new Schema<StepDocument, StepModel>({
   category: { type: String, required: true },
   project: { type: String, required: true },
   step_number: { type: Number, required: true },
@@ -30,4 +43,4 @@ const StepSchema = new Schema<StepType>({
   }
 });
 
-export const Step = model<StepType>('Step', StepSchema);
+export const Step = model<StepDocument>('Step', StepSchema);

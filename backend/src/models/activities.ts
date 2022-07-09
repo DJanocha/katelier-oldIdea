@@ -1,7 +1,8 @@
-import { Schema, model, Types } from 'mongoose';
+import { Schema, model, Types, Document } from 'mongoose';
 import { isDateValid } from 'src/utils';
+import { StepModel } from './steps';
 
-export type ActivityType = {
+export interface IActivity {
   name: string;
   color: string;
   date: string; // null (it's a template) or Date object (it's put on callendar)
@@ -9,15 +10,28 @@ export type ActivityType = {
   stop_time: string;
   description: string;
   step: Types.ObjectId;
-};
+}
 
-const ActivitySchema = new Schema<ActivityType>(
+export interface ActivityDocument extends IActivity, Document {
+  step: StepModel['_id'];
+}
+export interface ActivityDocumentWithStep extends ActivityDocument {
+  step: StepModel;
+  isTemplate(): boolean;
+}
+
+/*Now it can be as a type. If you want to add some 
+static functions, you better change
+it to interface */
+export type ActivityModel = ActivityDocument;
+
+const ActivitySchema = new Schema<ActivityDocument, ActivityModel>(
   {
     name: {
       type: String,
       required: [
         // eslint-disable-next-line no-unused-vars
-        function (this: ActivityType) {
+        function (this: IActivity) {
           if (this.step) {
             return false;
           }
@@ -33,7 +47,7 @@ const ActivitySchema = new Schema<ActivityType>(
       type: String,
       validate: [
         // eslint-disable-next-line no-unused-vars
-        function (this: ActivityType) {
+        function (this: IActivity) {
           return isDateValid(this.date);
         },
         'Date has to be in format: YYYY-MM-DD'
@@ -48,13 +62,6 @@ const ActivitySchema = new Schema<ActivityType>(
     stop_time: {
       type: String,
       required: [true, 'Start time is required'],
-      // validate: [
-      //   // eslint-disable-next-line no-unused-vars
-      //   function (this: unknown) {
-      //     return this.name.length <= 20 (return true (validation passed) if name.length is not greater than 20. Reject if it's longer);
-      //   },
-      //   'custom errror'
-      // // ],
       length: [5, 'Name can be 5 characters long at max']
     },
     step: {
@@ -62,7 +69,7 @@ const ActivitySchema = new Schema<ActivityType>(
       ref: 'Step',
       validate: [
         // eslint-disable-next-line no-unused-vars
-        function (this: ActivityType) {
+        function (this: IActivity) {
           return this.date !== undefined;
         },
         'Cannot assign activity to step without giving the date'
@@ -79,4 +86,4 @@ ActivitySchema.virtual('isTemplate').get(function () {
   return this.date == null;
 });
 
-export const Activity = model<ActivityType>('Activity', ActivitySchema);
+export const Activity = model<ActivityDocument>('Activity', ActivitySchema);
