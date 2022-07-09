@@ -86,10 +86,16 @@ export const loginAndSendResponse = ({ user, res }: { user: UserDocument; res: R
   }
   res.cookie('jwt', token, cookieOptions);
 
-  //removing user password from output
-  const userOutputData: Partial<IUser> = { ...user } as IUser;
-  userOutputData.password = undefined;
-
+  const userOutputData: Partial<IUser> = {
+    categories: user.categories,
+    email: user.email,
+    facebook: user.facebook,
+    image: user.image,
+    name: user.name,
+    ig: user.ig,
+    role: user.role,
+    tel: user.tel
+  };
   return res.status(200).json({ ok: true, token, user: userOutputData });
 };
 
