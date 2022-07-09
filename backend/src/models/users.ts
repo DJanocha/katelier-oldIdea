@@ -6,13 +6,16 @@ import { CategoryModel } from './categories';
 const { Schema, model } = mongoose;
 //https://github.com/Automattic/mongoose/issues/9535#issuecomment-727039299
 type Role = 'client' | 'artist';
-export interface IUser {
+
+export interface IBaseUser {
   name: string;
   tel: string;
   email: string;
   ig: string;
   facebook: string;
   image?: string;
+}
+export interface IUser extends IBaseUser {
   role: Role;
   categories?: mongoose.Types.ObjectId[];
   password: string;

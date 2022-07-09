@@ -10,11 +10,11 @@ import {
   verifyAndDecodeJWT
 } from 'src/utils/authUtils';
 import { hashTheResetToken } from 'src/utils/hashTheResetToken';
-import { UserDocument } from 'src/models/users';
+import { IBaseUser, UserDocument } from 'src/models/users';
 
 //routes
 export const register: RequestHandler = catchAsync(async (req, res, next) => {
-  const acceptedUserData = { ...req.body, role: undefined };
+  const acceptedUserData = { ...req.body, role: undefined } as IBaseUser;
 
   const newUser = new User(acceptedUserData) as UserDocument;
   await newUser.save();
