@@ -27,7 +27,8 @@ export interface IUser extends IBaseUser {
 }
 export interface UserDocument extends IUser, Document {
   categories: Types.Array<CategoryModel['_id']>;
-  createResetPasswordToken(): string;
+  createResetPasswordToken(): Promise<string>;
+  removeResetPasswordToken(): Promise<void>;
 }
 export interface UserDocumentWithCategories extends UserDocument {
   // if line below creates errors, try to make it an array of ICategory instead of categoryModel (not to extend Model, Document or whatever)
@@ -115,12 +116,17 @@ UserSchema.pre<Query<UserDocument, UserDocument>>(/^find/, async function (next)
   next();
 });
 
-UserSchema.methods.createResetPasswordToken = function (this: UserDocument) {
+UserSchema.methods.createResetPasswordToken = async function (this: UserDocument) {
   const { expiresIn, hashed, token } = generateResetToken();
   this.resetPassword = hashed;
   this.resetPasswordExpires = expiresIn;
-
+  await this.save();
   return token;
+};
+UserSchema.methods.removeResetPasswordToken = async function (this: UserDocument) {
+  this.resetPassword = undefined;
+  this.resetPasswordExpires = undefined;
+  await this.save();
 };
 
 UserSchema.index({ email: 1 }, { unique: true });

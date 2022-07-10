@@ -74,11 +74,11 @@ describe('login', () => {
     await existingUser.save();
   });
   it('does not let you login with incorrect email or password', async () => {
-    await expect(loginAs({ email: invalidEmail, pass: validPassword })).rejects.toThrow();
+    await expect(loginAs({ email: invalidEmail, password: validPassword })).rejects.toThrow();
   });
 
   it('lets you log in when email and password are matching', async () => {
-    await expect(loginAs({ email: validEmail, pass: validPassword })).resolves.not.toThrow();
+    await expect(loginAs({ email: validEmail, password: validPassword })).resolves.not.toThrow();
   });
 });
 
@@ -114,7 +114,7 @@ describe('update me', () => {
   });
   it('Should not let to update password in update me route', async () => {
     await expect(User.find({ email: validEmail })).resolves.not.toThrow();
-    const dataVariants: Record<string, any>[] = [
+    const dataVariants: Record<string, string>[] = [
       { newPassword: validPassword },
       { newPasswordConfirm: validPassword },
       {
