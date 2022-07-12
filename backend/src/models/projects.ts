@@ -24,8 +24,7 @@ export type ProjectModel = ProjectDocument;
 const ProjectSchema = new Schema<ProjectDocument, ProjectModel>({
   name: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   description: String,
   steps: { type: [Schema.Types.ObjectId], default: [], ref: 'Step' },

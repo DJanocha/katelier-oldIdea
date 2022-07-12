@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
-import mongoose, { Document, FilterQuery, Model, Query, QuerySelector, Types } from 'mongoose';
+import { Document, Model, Query, Types, Schema, model } from 'mongoose';
+import { AppError } from 'src/utils';
 import { generateResetToken } from 'src/utils/authUtils';
 import isEmail from 'validator/lib/isEmail';
 import { Category, CategoryModel, ICategory } from './categories';
-const { Schema, model } = mongoose;
 //https://github.com/Automattic/mongoose/issues/9535#issuecomment-727039299
 type Role = 'client' | 'artist';
 
@@ -17,7 +17,7 @@ export interface IBaseUser {
 }
 export interface IUser extends IBaseUser {
   role: Role;
-  categories?: mongoose.Types.ObjectId[];
+  categories?: Types.ObjectId[];
   password: string;
   passwordConfirm: string | undefined;
   passwordChangedAt: Date;
@@ -52,15 +52,9 @@ const UserSchema = new Schema<IUser, Model<IUser>>({
   ig: { type: String, requried: false },
   facebook: { type: String, requried: false },
   categories: {
-    type: [mongoose.Schema.Types.ObjectId],
+    type: [Schema.Types.ObjectId],
     ref: 'Category',
-    default: [],
-    validate: {
-      validator: function (this: UserDocument, newCategoryName: string) {
-        return this.categories.findIndex((category: ICategory) => category.name === newCategoryName) === -1;
-      },
-      message: 'Category name already occupied'
-    }
+    default: []
   },
   image: {
     type: String,
@@ -124,6 +118,12 @@ UserSchema.pre<Query<UserDocument, UserDocument>>(/^find/, async function (next)
 });
 
 UserSchema.methods.addCategory = async function (this: UserDocument, name: string) {
+  const { categories } = await this.populate({ path: 'categories' });
+  const categoryNameOccupied = categories.find((category: ICategory) => category.name === name);
+
+  if (categoryNameOccupied) {
+    throw new AppError('User already has a category with given name', 400);
+  }
   const newCategory = new Category({ name });
   await newCategory.save();
 
