@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import mongoose, { Document, FilterQuery, Model, Query, QuerySelector, Types } from 'mongoose';
 import { generateResetToken } from 'src/utils/authUtils';
 import isEmail from 'validator/lib/isEmail';
-import { CategoryModel } from './categories';
+import { Category, CategoryModel, ICategory } from './categories';
 const { Schema, model } = mongoose;
 //https://github.com/Automattic/mongoose/issues/9535#issuecomment-727039299
 type Role = 'client' | 'artist';
@@ -29,6 +29,7 @@ export interface UserDocument extends IUser, Document {
   categories: Types.Array<CategoryModel['_id']>;
   createResetPasswordToken(): Promise<string>;
   removeResetPasswordToken(): Promise<void>;
+  addCategory(name: string): Promise<void>;
 }
 export interface UserDocumentWithCategories extends UserDocument {
   // if line below creates errors, try to make it an array of ICategory instead of categoryModel (not to extend Model, Document or whatever)
@@ -53,7 +54,13 @@ const UserSchema = new Schema<IUser, Model<IUser>>({
   categories: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'Category',
-    default: []
+    default: [],
+    validate: {
+      validator: function (this: UserDocument, newCategoryName: string) {
+        return this.categories.findIndex((category: ICategory) => category.name === newCategoryName) === -1;
+      },
+      message: 'Category name already occupied'
+    }
   },
   image: {
     type: String,
@@ -116,6 +123,13 @@ UserSchema.pre<Query<UserDocument, UserDocument>>(/^find/, async function (next)
   next();
 });
 
+UserSchema.methods.addCategory = async function (this: UserDocument, name: string) {
+  const newCategory = new Category({ name });
+  await newCategory.save();
+
+  this.categories.push(newCategory._id);
+  await this.save();
+};
 UserSchema.methods.createResetPasswordToken = async function (this: UserDocument) {
   const { expiresIn, hashed, token } = generateResetToken();
   this.resetPassword = hashed;

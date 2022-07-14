@@ -23,8 +23,7 @@ export type CategoryModel = CategoryDocument;
 const CategorySchema = new Schema<CategoryDocument, CategoryModel>({
   name: {
     type: String,
-    required: [true, 'Category needs to have a name'],
-    unique: true
+    required: [true, 'Category needs to have a name']
   },
   color: String,
   icon: String,
