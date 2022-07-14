@@ -2,15 +2,15 @@ import { Schema, model, Types, Document } from 'mongoose';
 import { MaterialModel } from './materials';
 
 export interface IStep {
-  category: string;
-  project: string;
+  category: Types.ObjectId;
+  project: Types.ObjectId;
   step_number: number;
-  img: string;
-  path: string;
-  public_path: string;
-  used_materials: Types.ObjectId[];
+  img?: string;
+  path?: string;
+  public_path?: string;
+  used_materials?: Types.ObjectId[];
   activity: Types.ObjectId;
-  description: string;
+  // description: string;
 }
 
 export interface StepDocument extends IStep, Document {
@@ -26,10 +26,10 @@ it to interface */
 export type StepModel = StepDocument;
 
 const StepSchema = new Schema<StepDocument, StepModel>({
-  category: { type: String, required: true },
-  project: { type: String, required: true },
+  category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
+  project: { type: Schema.Types.ObjectId, ref: 'Project', required: true },
   step_number: { type: Number, required: true },
-  description: { type: String },
+  // description: { type: String },
   img: String,
   path: String,
   public_path: String,

@@ -43,7 +43,7 @@ CategorySchema.methods.addProject = async function (this: CategoryDocument, newP
   if (projectNameOccupied) {
     throw new AppError('Category already contains a project with given name', 400);
   }
-  const newProject = new Project({ name: newProjectName });
+  const newProject = new Project({ name: newProjectName, category: this._id });
   await newProject.save();
   this.projects.push();
   await this.save();

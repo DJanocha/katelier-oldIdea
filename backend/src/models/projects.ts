@@ -6,6 +6,7 @@ export interface IProject {
   description: string;
   steps: Types.ObjectId[];
   client_info: string;
+  category: Types.ObjectId;
 }
 
 export interface ProjectDocument extends IProject, Document {
@@ -28,7 +29,8 @@ const ProjectSchema = new Schema<ProjectDocument, ProjectModel>({
   },
   description: String,
   steps: { type: [Schema.Types.ObjectId], default: [], ref: 'Step' },
-  client_info: String
+  client_info: String,
+  category: { type: Schema.Types.ObjectId, ref: 'Category', required: true }
 });
 
 export const Project = model<ProjectDocument>('Project', ProjectSchema);

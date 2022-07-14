@@ -11,15 +11,15 @@ const secondCategoryName = 'second category';
 const firstProjectName = 'first project name';
 describe('given project name', () => {
   beforeEach(async () => {
-    const firstProject = new Project({ name: firstProjectName });
-    await firstProject.save();
     const firstCategory = new Category({ name: firstCategoryName });
+    const firstProject = new Project({ name: firstProjectName, category: firstCategory._id });
     firstCategory.projects.push(firstProject._id);
+    await firstProject.save();
     await firstCategory.save();
     const secondCategory = new Category({ name: secondCategoryName });
     await secondCategory.save();
   });
-  describe.only('when occupied in given category', () => {
+  describe('when occupied in given category', () => {
     it('should NOT create new project', async () => {
       const projectsBefore = await Project.find().count();
       const category = await Category.findOne<CategoryDocument>({ name: firstCategoryName });
@@ -29,7 +29,7 @@ describe('given project name', () => {
       expect(projectsAfter).toEqual(projectsBefore);
     });
   });
-  describe.only('when occupied in other  category', () => {
+  describe('when occupied in other  category', () => {
     it('should create new project', async () => {
       const projectsBefore = await Project.find().count();
       const category = await Category.findOne<CategoryDocument>({ name: secondCategoryName });
