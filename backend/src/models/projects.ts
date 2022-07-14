@@ -1,5 +1,6 @@
 import { Schema, model, Types, Document } from 'mongoose';
-import { StepModel } from './steps';
+import { Activity } from './activities';
+import { IStep, Step, StepModel } from './steps';
 
 export interface IProject {
   name: string;
@@ -11,7 +12,13 @@ export interface IProject {
 
 export interface ProjectDocument extends IProject, Document {
   steps: Types.Array<StepModel['_id']>;
+  addStep(newStepData: NewStepData): Promise<void>;
 }
+type NewStepData = {
+  date: Date;
+  startTime: string;
+  stopTime: string;
+};
 
 export interface ProjectDocumentsWithSteps extends ProjectDocument {
   steps: Types.Array<StepModel>;
@@ -32,5 +39,20 @@ const ProjectSchema = new Schema<ProjectDocument, ProjectModel>({
   client_info: String,
   category: { type: Schema.Types.ObjectId, ref: 'Category', required: true }
 });
+
+ProjectSchema.methods.addStep = async function (this: ProjectDocument, newStepData: NewStepData) {
+  const stepsQuantity = this.steps.length;
+  const { date, startTime: start_time, stopTime: stop_time } = newStepData;
+  const newActivity = new Activity({ date, start_time, stop_time });
+  const newStep = new Step<IStep>({
+    category: this.category,
+    project: this._id,
+    step_number: stepsQuantity,
+    activity: newActivity._id
+  });
+  newActivity.step = newStep._id;
+  await newActivity.save();
+  await newStep.save();
+};
 
 export const Project = model<ProjectDocument>('Project', ProjectSchema);
