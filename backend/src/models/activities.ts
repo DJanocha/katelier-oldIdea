@@ -97,6 +97,27 @@ ActivitySchema.virtual('isTemplate').get(function () {
 ActivitySchema.statics.getTemplates = async function (this: ActivityModel) {
   return await this.find().where('date').equals(undefined).where('step').equals(undefined);
 };
+/**
+ *
+ * ale jesli nie damy await, to zwrocimy queryObjet, po ktory mozna wykorzsytac tak
+ *   jak zwykly find?
+ *   np :
+ * const templatesCount = await Activity.getTemplates().count()
+ *
+ * albo:
+ *
+ * await Activity.getTemplates().where('date_start').gt(date.now())
+ * ?? przeszloby? do zbadania!
+ *
+ * alboo:
+ *
+ * await Activity.findEvents()
+ * .where('date_start')
+ * .gt(<begginingOfThisMonth>)
+ * .where('date_stop)
+ * .lt(<endOfThisMonth>)
+ *
+ */
 ActivitySchema.index(
   { date: 1, name: 1 },
   {
@@ -105,5 +126,3 @@ ActivitySchema.index(
   }
 );
 export const Activity = model<ActivityDocument, ActivityModel>('Activity', ActivitySchema);
-
-export const Activity = model<ActivityDocument>('Activity', ActivitySchema);
