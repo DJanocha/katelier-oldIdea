@@ -9,7 +9,9 @@ afterAll(async () => await closeDB());
 const firstCategoryName = 'first category';
 const secondCategoryName = 'second category';
 const firstProjectName = 'first project name';
-describe('given project name', () => {
+describe('adding new project', () => {
+  let projectsCountBefore: number;
+
   beforeEach(async () => {
     const firstCategory = new Category({ name: firstCategoryName });
     const firstProject = new Project({ name: firstProjectName, category: firstCategory._id });
@@ -18,25 +20,36 @@ describe('given project name', () => {
     await firstCategory.save();
     const secondCategory = new Category({ name: secondCategoryName });
     await secondCategory.save();
+    projectsCountBefore = await Project.find().count();
   });
-  describe('when occupied in given category', () => {
-    it('should NOT create new project', async () => {
-      const projectsBefore = await Project.find().count();
-      const category = await Category.findOne<CategoryDocument>({ name: firstCategoryName });
 
-      await expect(category?.addProject(firstProjectName)).rejects.toThrow();
-      const projectsAfter = await Project.find().count();
-      expect(projectsAfter).toEqual(projectsBefore);
+  describe('given project name', () => {
+    describe('given already occupied project name for given category', () => {
+      it('Should NOT let create new project', async () => {
+        const category = await Category.findOne<CategoryDocument>({ name: firstCategoryName });
+
+        await expect(category?.addProject(firstProjectName)).rejects.toThrow();
+        const projectsAfter = await Project.find().count();
+        expect(projectsAfter).toEqual(projectsCountBefore);
+      });
     });
-  });
-  describe('when occupied in other  category', () => {
-    it('should create new project', async () => {
-      const projectsBefore = await Project.find().count();
-      const category = await Category.findOne<CategoryDocument>({ name: secondCategoryName });
+    describe('given project name NOT occupied yet by given category ', () => {
+      it('Should create new project', async () => {
+        const category = await Category.findOne<CategoryDocument>({ name: secondCategoryName });
 
-      await expect(category?.addProject(firstProjectName)).resolves.not.toThrow();
-      const projectsAfter = await Project.find().count();
-      expect(projectsAfter).toEqual(projectsBefore + 1);
+        await expect(category?.addProject(firstProjectName)).resolves.not.toThrow();
+        const projectsAfter = await Project.find().count();
+        expect(projectsAfter).toEqual(projectsCountBefore + 1);
+      });
+    });
+    describe('given project name used by OTHER category', () => {
+      it('Should create new project', async () => {
+        const category = await Category.findOne<CategoryDocument>({ name: secondCategoryName });
+
+        await expect(category?.addProject(firstProjectName)).resolves.not.toThrow();
+        const projectsAfter = await Project.find().count();
+        expect(projectsAfter).toEqual(projectsCountBefore + 1);
+      });
     });
   });
 });

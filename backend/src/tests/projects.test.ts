@@ -13,6 +13,10 @@ const firstProjectName = 'first project name';
 const startDate = '';
 const startDateAndTime = '2022-02-02 10:30';
 const stopDateAndTime = '2022-02-02 15:30';
+const startTimeInvalid = '13:200';
+const startTime = '13:20';
+const stopTimeInvalid = '16:200';
+const stopTime = '16:20';
 /**
  * Tworzenie stepu wyglada nastepujaco:
  * 0. bedac 'w projekcie' klikamy 'dodaj krok' przy uzyciu
@@ -35,10 +39,6 @@ describe('when addding new step', () => {
   });
   describe('when start time or  end time is invalid', () => {
     it('should not neither create nor add any new step', async () => {
-      const startTimeInvalid = '13:200';
-      const startTime = '13:20';
-      const stopTimeInvalid = '16:200';
-      const stopTime = '16:20';
       const now = new Date();
       let stepsAfter;
       const theProject: ProjectDocument | null = await Project.findOne();
