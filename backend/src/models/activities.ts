@@ -27,6 +27,7 @@ it to interface */
 // export type ActivityModel = ActivityDocument;
 export interface ActivityModel extends Model<IActivity> {
   getTemplates(): Promise<ActivityDocument[]>;
+  getEvents(): Promise<ActivityDocument[]>;
 }
 
 const ActivitySchema = new Schema<ActivityDocument, ActivityModel>(
@@ -95,7 +96,10 @@ ActivitySchema.virtual('isTemplate').get(function () {
   return this.date == null && this.step == null;
 });
 ActivitySchema.statics.getTemplates = async function (this: ActivityModel) {
-  return await this.find().where('date').equals(undefined).where('step').equals(undefined);
+  return await this.find().where('date').equals(undefined);
+};
+ActivitySchema.statics.getEvents = async function (this: ActivityModel) {
+  return await this.find().where('date').ne(undefined);
 };
 /**
  *

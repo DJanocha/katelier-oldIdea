@@ -11,12 +11,12 @@ const stop_time2 = '16:20';
 const invalidTime = '17:80';
 const templateName = 'klasyczne kardio';
 const templateName2 = 'medytacja';
-const actualActivityName = 'jutrzejsza wyprawa';
-const actualActivityName2 = 'jutrzejsza meczarnia';
+const eventName = 'jutrzejsza wyprawa';
+const eventName2 = 'jutrzejsza meczarnia';
 
-describe.only('adding new template', () => {
+describe('adding new template', () => {
   let templatesCountBefore: number;
-  let activitiesCountBefore: number;
+  let eventsCountBefore: number;
   let allActivitiesCountBefore: number;
 
   beforeEach(async () => {
@@ -25,25 +25,25 @@ describe.only('adding new template', () => {
       start_time,
       stop_time: stop_time2,
       date: Date.now(),
-      name: actualActivityName
+      name: eventName
     });
     templatesCountBefore = (await Activity.getTemplates()).length;
     allActivitiesCountBefore = (await Activity.find()).length;
-    activitiesCountBefore = allActivitiesCountBefore - templatesCountBefore;
+    eventsCountBefore = (await Activity.getEvents()).length;
   });
   it('should return proper ammount of templates from database', async () => {
     const temps = await Activity.getTemplates();
     expect(temps).toHaveLength(1);
   });
   describe('when given invalid start-time or stop_time', () => {
-    it('should not create either activity or template', async () => {
+    it('should not create either event or template', async () => {
       await expect(Activity.create({ start_time, stop_time: invalidTime, name: templateName })).rejects.toThrow();
       await expect(Activity.create({ start_time: invalidTime, stop_time, name: templateName })).rejects.toThrow();
       await expect(
-        Activity.create({ start_time: invalidTime, stop_time, date: Date.now(), name: actualActivityName2 })
+        Activity.create({ start_time: invalidTime, stop_time, date: Date.now(), name: eventName2 })
       ).rejects.toThrow();
       await expect(
-        Activity.create({ start_time, stop_time: invalidTime, date: Date.now(), name: actualActivityName2 })
+        Activity.create({ start_time, stop_time: invalidTime, date: Date.now(), name: eventName2 })
       ).rejects.toThrow();
     });
   });
@@ -56,16 +56,16 @@ describe.only('adding new template', () => {
     });
   });
   describe('when given ok data with  date ', () => {
-    it('should create actual activity', async () => {
+    it('should create event', async () => {
       await expect(
         Activity.create({ start_time, stop_time, date: Date.now(), name: templateName })
       ).resolves.not.toThrow();
       const templatesCountAfter = (await Activity.getTemplates()).length;
       const allActivitesCountAfter = (await Activity.find()).length;
-      const activitiesCountAfter = allActivitesCountAfter - templatesCountAfter;
+      const eventsCountAfter = (await Activity.getEvents()).length;
 
       expect(templatesCountAfter).toEqual(templatesCountBefore);
-      expect(activitiesCountAfter).toEqual(activitiesCountBefore + 1);
+      expect(eventsCountAfter).toEqual(eventsCountBefore + 1);
       expect(allActivitesCountAfter).toEqual(allActivitiesCountBefore + 1);
     });
   });
@@ -74,10 +74,10 @@ describe.only('adding new template', () => {
       await expect(Activity.create({ start_time, stop_time, name: templateName2 })).resolves.not.toThrow();
       const templatesCountAfter = (await Activity.getTemplates()).length;
       const allActivitesCountAfter = (await Activity.find()).length;
-      const activitiesCountAfter = allActivitesCountAfter - templatesCountAfter;
+      const eventsCountAfter = (await Activity.getEvents()).length;
 
       expect(templatesCountAfter).toEqual(templatesCountBefore + 1);
-      expect(activitiesCountAfter).toEqual(activitiesCountBefore);
+      expect(eventsCountAfter).toEqual(eventsCountBefore);
       expect(allActivitesCountAfter).toEqual(allActivitiesCountBefore + 1);
     });
   });
