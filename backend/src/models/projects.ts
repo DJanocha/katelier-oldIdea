@@ -16,8 +16,8 @@ export interface ProjectDocument extends IProject, Document {
 }
 type NewStepData = {
   date: Date;
-  startTime: string;
-  stopTime: string;
+  startTime: Date;
+  stopTime: Date;
 };
 
 export interface ProjectDocumentsWithSteps extends ProjectDocument {

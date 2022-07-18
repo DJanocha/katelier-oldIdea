@@ -5,10 +5,14 @@ beforeAll(async () => await connectDB());
 afterEach(async () => await clearDB());
 afterAll(async () => await closeDB());
 
-const start_time = '12:20';
-const stop_time = '14:20';
-const stop_time2 = '16:20';
-const invalidTime = '17:80';
+const start_time = new Date();
+start_time.setHours(12, 20);
+
+const stop_time = new Date();
+stop_time.setHours(14, 20);
+
+const stop_time2 = new Date();
+stop_time2.setHours(16, 20);
 const templateName = 'klasyczne kardio';
 const templateName2 = 'medytacja';
 const eventName = 'jutrzejsza wyprawa';
