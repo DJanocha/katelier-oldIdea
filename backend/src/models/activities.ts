@@ -43,7 +43,7 @@ const ActivitySchema = new Schema<ActivityDocument, ActivityModel>(
         },
         'Name is required'
       ],
-      maxlength: [20, 'Name can be 20 characters long at max']
+      maxlength: [50, 'Name can be 50 characters long at max']
     },
     color: String,
     description: { type: String },

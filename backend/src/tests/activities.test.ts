@@ -17,6 +17,7 @@ const templateName = 'klasyczne kardio';
 const templateName2 = 'medytacja';
 const eventName = 'jutrzejsza wyprawa';
 const eventName2 = 'jutrzejsza meczarnia';
+const now = new Date();
 
 describe('adding new template', () => {
   let templatesCountBefore: number;
@@ -28,7 +29,7 @@ describe('adding new template', () => {
     await Activity.create({
       start_time,
       stop_time: stop_time2,
-      date: Date.now(),
+      date: now,
       name: eventName
     });
     templatesCountBefore = (await Activity.getTemplates()).length;
@@ -61,8 +62,7 @@ describe('adding new template', () => {
   });
   describe('when given ok data with  date ', () => {
     it('should create event', async () => {
-      await expect(
-        Activity.create({ start_time, stop_time, date: Date.now(), name: templateName })
+      await expect(Activity.create({ start_time, stop_time, date: now, name: templateName })
       ).resolves.not.toThrow();
       const templatesCountAfter = (await Activity.getTemplates()).length;
       const allActivitesCountAfter = (await Activity.find()).length;
