@@ -1,6 +1,6 @@
 import { Activity } from 'src/models';
+import { createEvent } from 'src/services/activitiesService';
 import { connectDB, clearDB, closeDB } from './db';
-
 beforeAll(async () => await connectDB());
 afterEach(async () => await clearDB());
 afterAll(async () => await closeDB());
@@ -40,18 +40,6 @@ describe('adding new template', () => {
     const temps = await Activity.getTemplates();
     expect(temps).toHaveLength(1);
   });
-  describe('when given invalid start-time or stop_time', () => {
-    it('should not create either event or template', async () => {
-      await expect(Activity.create({ start_time, stop_time: invalidTime, name: templateName })).rejects.toThrow();
-      await expect(Activity.create({ start_time: invalidTime, stop_time, name: templateName })).rejects.toThrow();
-      await expect(
-        Activity.create({ start_time: invalidTime, stop_time, date: Date.now(), name: eventName2 })
-      ).rejects.toThrow();
-      await expect(
-        Activity.create({ start_time, stop_time: invalidTime, date: Date.now(), name: eventName2 })
-      ).rejects.toThrow();
-    });
-  });
 
   describe('when creating template using uccupied name', () => {
     it('should not create new template', async () => {
@@ -83,6 +71,20 @@ describe('adding new template', () => {
       expect(templatesCountAfter).toEqual(templatesCountBefore + 1);
       expect(eventsCountAfter).toEqual(eventsCountBefore);
       expect(allActivitesCountAfter).toEqual(allActivitiesCountBefore + 1);
+    });
+  });
+  describe('when could overlap other event timespan', () => {
+    it('should not let create that', async () => {
+      await expect(createEvent({ date: now, start_time, stop_time, name: 'overlaying activity' })).rejects.toThrow();
+    });
+  });
+  describe('when not overlapping other event timespan', () => {
+    it('should create new event', async () => {
+      const tomorrow = new Date();
+      tomorrow.setFullYear(tomorrow.getFullYear() + 2);
+      await expect(
+        createEvent({ date: tomorrow, start_time, stop_time, name: 'not overlaying activity' })
+      ).resolves.not.toThrow();
     });
   });
 });
