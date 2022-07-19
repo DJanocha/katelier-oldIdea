@@ -10,8 +10,8 @@ const mergeDateTime = ({ time, date }: { time: Date; date: Date }) => {
   return merged;
 };
 
-export const createEvent = async (newActivity: IActivity & { date: Date }) => {
-  const { start_time, stop_time, name, description, date, color } = newActivity;
+export const createEvent = async (newEvent: IActivity & { date: Date }) => {
+  const { start_time, stop_time, name, description, date, color } = newEvent;
 
   const start = mergeDateTime({ date, time: start_time });
   const stop = mergeDateTime({ date, time: stop_time });
@@ -21,6 +21,11 @@ export const createEvent = async (newActivity: IActivity & { date: Date }) => {
   if (startTimeNotOk || stopTimeNotOk || date == undefined) {
     throw new AppError('invalid time provided. Maybe already occupied?', 400);
   }
-  const theNewActivity = new Activity(newActivity);
+  const theNewActivity = new Activity(newEvent);
+  await theNewActivity.save();
+};
+
+export const createTemplate = async (newTemplate: Omit<IActivity, 'date'>) => {
+  const theNewActivity = new Activity(newTemplate);
   await theNewActivity.save();
 };
