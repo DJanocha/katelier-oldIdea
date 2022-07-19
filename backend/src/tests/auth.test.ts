@@ -31,40 +31,48 @@ afterEach(async () => await clearDB());
 afterAll(async () => await closeDB());
 
 describe('register', () => {
+  let usersCountBefore: number;
   beforeEach(async () => {
     const currentUser = new User({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
     await currentUser.save();
+    usersCountBefore = await User.find().count();
   });
   afterEach(async () => await clearDB());
-  it('Blocks user registration when passwords do not match', async () => {
-    const usersCountBefore = await User.find().count();
-    const newUser = new User({ email: validEmail, password: validPassword, passwordConfirm: tooShortPassword });
-    await expect(newUser.save()).rejects.toThrowError();
-    await expect(User.find()).resolves.toHaveLength(usersCountBefore);
+
+  describe('given not matching passwords ', () => {
+    it('Does not let user register ', async () => {
+      const newUser = new User({ email: validEmail, password: validPassword, passwordConfirm: tooShortPassword });
+      await expect(newUser.save()).rejects.toThrow();
+      await expect(User.find()).resolves.toHaveLength(usersCountBefore);
+    });
   });
-  it('Blocks user registration when passwords are too short', async () => {
-    const usersCountBefore = await User.find().count();
-    const newUser = new User({ email: validEmail, password: tooShortPassword, passwordConfirm: tooShortPassword });
-    await expect(newUser.save()).rejects.toThrowError();
-    await expect(User.find()).resolves.toHaveLength(usersCountBefore);
+  describe('given too short passwords', () => {
+    it('Does not let user register ', async () => {
+      const newUser = new User({ email: validEmail, password: tooShortPassword, passwordConfirm: tooShortPassword });
+      await expect(newUser.save()).rejects.toThrow();
+      await expect(User.find()).resolves.toHaveLength(usersCountBefore);
+    });
   });
-  it('Blocks user registration when email is invalid', async () => {
-    const usersCountBefore = await User.find().count();
-    const newUser = new User({ email: invalidEmail, password: tooShortPassword, passwordConfirm: tooShortPassword });
-    await expect(newUser.save()).rejects.toThrowError();
-    await expect(User.find()).resolves.toHaveLength(usersCountBefore);
+  describe('given invalid email ', () => {
+    it('Does not let user register ', async () => {
+      const newUser = new User({ email: invalidEmail, password: tooShortPassword, passwordConfirm: tooShortPassword });
+      await expect(newUser.save()).rejects.toThrow();
+      await expect(User.find()).resolves.toHaveLength(usersCountBefore);
+    });
   });
-  it('Does not add new user when email is already taken', async () => {
-    const usersCountBefore = await User.find().count();
-    const newUser = new User({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
-    await expect(newUser.save()).rejects.toThrow();
-    await expect(User.find()).resolves.toHaveLength(usersCountBefore);
+  describe('given already taken email', () => {
+    it('Does not let user register ', async () => {
+      const newUser = new User({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
+      await expect(newUser.save()).rejects.toThrow();
+      await expect(User.find()).resolves.toHaveLength(usersCountBefore);
+    });
   });
-  it('Accepts user registration when input correct', async () => {
-    const usersCountBefore = await User.find().count();
-    const newUser = new User({ email: validEmail, password: validPassword, passwordConfirm: validPassword });
-    await expect(newUser.save()).resolves.not.toThrow();
-    await expect(User.find()).resolves.toHaveLength(usersCountBefore + 1);
+  describe('given correct input', () => {
+    it('Accepts user registration ', async () => {
+      const newUser = new User({ email: validEmail, password: validPassword, passwordConfirm: validPassword });
+      await expect(newUser.save()).resolves.not.toThrow();
+      await expect(User.find()).resolves.toHaveLength(usersCountBefore + 1);
+    });
   });
 });
 
@@ -73,12 +81,13 @@ describe('login', () => {
     const existingUser = new User({ email: validEmail, password: validPassword, passwordConfirm: validPassword });
     await existingUser.save();
   });
-  it('does not let you login with incorrect email or password', async () => {
-    await expect(loginAs({ email: invalidEmail, pass: validPassword })).rejects.toThrow();
+  it('Does not let you login with incorrect email or password', async () => {
+    await expect(loginAs({ email: invalidEmail, password: validPassword })).rejects.toThrow();
+    await expect(loginAs({ email: validEmail, password: invalidPassword })).rejects.toThrow();
   });
 
   it('lets you log in when email and password are matching', async () => {
-    await expect(loginAs({ email: validEmail, pass: validPassword })).resolves.not.toThrow();
+    await expect(loginAs({ email: validEmail, password: validPassword })).resolves.not.toThrow();
   });
 });
 
@@ -95,16 +104,22 @@ describe('update password', () => {
     });
     return data as unknown as UpdateUserPasswordInput;
   };
-  it('does not let you update password when current password typed incorrectly', async () => {
-    await expect(updateUserPassword(getAndMutateDataForUpdatingUser())).rejects.toThrow();
+  describe('given incorrect current password ', () => {
+    it('Does not let you update password ', async () => {
+      await expect(updateUserPassword(getAndMutateDataForUpdatingUser())).rejects.toThrow();
+    });
   });
-  it('does not let you update password when new password and new password confirm  do not match', async () => {
-    await expect(updateUserPassword(getAndMutateDataForUpdatingUser(['newPasswordConfirm']))).rejects.toThrow();
+  describe('given new password and new password confirm not matching', () => {
+    it('Does not let you update password ', async () => {
+      await expect(updateUserPassword(getAndMutateDataForUpdatingUser(['newPasswordConfirm']))).rejects.toThrow();
+    });
   });
-  it('lets you update password when new passwords match and current password is valid ', async () => {
-    await expect(
-      updateUserPassword(getAndMutateDataForUpdatingUser(['newPasswordConfirm', 'newPassword']))
-    ).rejects.toThrow();
+  describe('given new passwords and new password confirm matching and valid current password', () => {
+    it('lets you update password ', async () => {
+      await expect(
+        updateUserPassword(getAndMutateDataForUpdatingUser(['newPasswordConfirm', 'newPassword']))
+      ).rejects.toThrow();
+    });
   });
 });
 describe('update me', () => {
@@ -114,7 +129,7 @@ describe('update me', () => {
   });
   it('Should not let to update password in update me route', async () => {
     await expect(User.find({ email: validEmail })).resolves.not.toThrow();
-    const dataVariants: Record<string, any>[] = [
+    const dataVariants: Record<string, string>[] = [
       { newPassword: validPassword },
       { newPasswordConfirm: validPassword },
       {

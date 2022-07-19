@@ -1,15 +1,15 @@
 import { Request, RequestHandler } from 'express';
-import { AppError, catchAsync, isResetTokenOutdated } from 'src/utils';
+import { AppError, catchAsync } from 'src/utils';
 import { User, IUser } from 'src/models';
 import { sendEmail } from 'src/utils/emails';
 import {
-  loginAndSendResponse,
+  createJWTandSendResponse,
   loginAs,
   updateUserPassword,
   updateUserData,
-  verifyAndDecodeJWT
+  resetUserPassword,
+  requireUserLogin
 } from 'src/utils/authUtils';
-import { hashTheResetToken } from 'src/utils/hashTheResetToken';
 import { IBaseUser, UserDocument } from 'src/models/users';
 
 //routes
@@ -19,40 +19,19 @@ export const register: RequestHandler = catchAsync(async (req, res, next) => {
   const newUser = new User(acceptedUserData) as UserDocument;
   await newUser.save();
 
-  return loginAndSendResponse({ user: newUser, res });
+  return createJWTandSendResponse({ user: newUser, res });
 });
 export const login: RequestHandler = catchAsync(async (req, res, next) => {
-  const { email, password: pass } = req.body;
-  if (!email || !pass) {
-    return next(new AppError('Please provide email and password', 400));
-  }
-  const user = await loginAs({ email, pass });
-  return loginAndSendResponse({ user, res });
+  const { email, password } = req.body;
+  const user = await loginAs({ email, password });
+  return createJWTandSendResponse({ user, res });
 });
 
 export const resetPassword: RequestHandler = catchAsync(async (req, res, next) => {
   const { token } = req.params;
   const { password, passwordConfirm } = req.body;
 
-  const hashedToken = hashTheResetToken(token);
-
-  const foundUser: UserDocument | null = await User.findOne({
-    resetPassword: hashedToken,
-    resetPasswordExpires: {
-      $gt: Date.now()
-    }
-  });
-  if (!foundUser) {
-    return next(new AppError('Token invalid or outdated. You need new one.', 401));
-  }
-
-  foundUser.resetPassword = undefined;
-  foundUser.resetPasswordExpires = undefined;
-
-  foundUser.password = password;
-  foundUser.passwordConfirm = passwordConfirm;
-
-  await foundUser.save();
+  await resetUserPassword({ token, password, passwordConfirm });
 
   return res.status(200).json({ ok: true, token });
 });
@@ -67,11 +46,9 @@ export const forgotPassword: RequestHandler = catchAsync(async (req, res, next) 
   if (!foundUser) {
     return next(new AppError('Could not find a user with given email', 200));
   }
-  foundUser;
 
   const generatedToken = foundUser.createResetPasswordToken();
 
-  await foundUser.save({ validateBeforeSave: false }); // so that it doesn't require us to put passwordConfirm on the User document
   const resetTokenUrl = `${req.protocol}://api/v1/reset_password/${generatedToken}`;
   const text = `If you forgot your password, send PATCH request with your new password to ${resetTokenUrl}, othwerwise ignore that email whatsoever.`;
 
@@ -83,10 +60,7 @@ export const forgotPassword: RequestHandler = catchAsync(async (req, res, next) 
       to: email
     });
   } catch (error) {
-    foundUser.resetPassword = undefined;
-    foundUser.resetPasswordExpires = undefined;
-    await foundUser.save({ validateBeforeSave: false }); // so that it doesn't require us to put passwordConfirm on the User document
-
+    foundUser.removeResetPasswordToken();
     return next(new AppError('Could not send email to the user. Try again later', 500));
   }
 
@@ -104,7 +78,7 @@ export const updatePassword: RequestHandler = catchAsync(async (req, res, next) 
   const { currentPassword, newPassword, newPasswordConfirm } = body;
 
   const updatedUser = await updateUserPassword({ currentPassword, email, newPassword, newPasswordConfirm });
-  return loginAndSendResponse({ user: updatedUser, res });
+  return createJWTandSendResponse({ user: updatedUser, res });
 });
 
 export const updateMe: RequestHandler = catchAsync(async (req, res, next) => {
@@ -144,31 +118,9 @@ export const requireLogin: RequestHandler = catchAsync(async (req, res, next) =>
   if (req.headers.authorization?.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ').pop();
   }
-  if (!token) {
-    return next(new AppError('You need to login first', 404));
-  }
   const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new AppError('Could not log in. Try again.', 500);
-  }
-  const decoded = verifyAndDecodeJWT(token, secret);
 
-  if (!decoded) {
-    throw new AppError('Could not log in. Try again.', 500);
-  }
-  const { exp, iat, id } = decoded;
-  const foundUser = await User.findById<UserDocument>(id);
-
-  if (!foundUser) {
-    return next(new AppError('User no longer exist. Log into different account', 403));
-  }
-
-  const tokenIsOutdated = isResetTokenOutdated({ passwordChangedAt: foundUser.passwordChangedAt, iat, exp });
-
-  if (tokenIsOutdated) {
-    return next(new AppError('Token is outdated. Please, login again.', 401));
-  }
-  req.user = foundUser;
+  req.user = await requireUserLogin({ token, secret });
 
   next();
 });

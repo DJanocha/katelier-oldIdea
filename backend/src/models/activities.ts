@@ -1,15 +1,16 @@
-import { Schema, model, Types, Document } from 'mongoose';
+import { Schema, model, Types, Document, Model } from 'mongoose';
 import { isDateValid } from 'src/utils';
+import { validateTime } from 'src/utils/validators';
 import { StepModel } from './steps';
 
 export interface IActivity {
-  name: string;
-  color: string;
-  date: string; // null (it's a template) or Date object (it's put on callendar)
+  name?: string;
+  color?: string;
+  date?: Date; // null (it's a template) or Date object (it's put on callendar)
   start_time: string; // e.g. '12:25'
   stop_time: string;
-  description: string;
-  step: Types.ObjectId;
+  description?: string;
+  step?: Types.ObjectId;
 }
 
 export interface ActivityDocument extends IActivity, Document {
@@ -23,7 +24,11 @@ export interface ActivityDocumentWithStep extends ActivityDocument {
 /*Now it can be as a type. If you want to add some 
 static functions, you better change
 it to interface */
-export type ActivityModel = ActivityDocument;
+// export type ActivityModel = ActivityDocument;
+export interface ActivityModel extends Model<IActivity> {
+  getTemplates(): Promise<ActivityDocument[]>;
+  getEvents(): Promise<ActivityDocument[]>;
+}
 
 const ActivitySchema = new Schema<ActivityDocument, ActivityModel>(
   {
@@ -44,7 +49,7 @@ const ActivitySchema = new Schema<ActivityDocument, ActivityModel>(
     color: String,
     description: { type: String },
     date: {
-      type: String,
+      type: Date,
       validate: [
         // eslint-disable-next-line no-unused-vars
         function (this: IActivity) {
@@ -56,13 +61,18 @@ const ActivitySchema = new Schema<ActivityDocument, ActivityModel>(
     start_time: {
       type: String,
       required: [true, 'Start time is required'],
-
-      maxlength: [5, 'Name can be 5 characters long at max']
+      validate: {
+        validator: validateTime,
+        message: 'invalid start time'
+      }
     },
     stop_time: {
       type: String,
       required: [true, 'Start time is required'],
-      length: [5, 'Name can be 5 characters long at max']
+      validate: {
+        validator: validateTime,
+        message: 'invalid stop time'
+      }
     },
     step: {
       type: Schema.Types.ObjectId,
@@ -83,7 +93,40 @@ const ActivitySchema = new Schema<ActivityDocument, ActivityModel>(
 );
 
 ActivitySchema.virtual('isTemplate').get(function () {
-  return this.date == null;
+  return this.date == null && this.step == null;
 });
-
-export const Activity = model<ActivityDocument>('Activity', ActivitySchema);
+ActivitySchema.statics.getTemplates = async function (this: ActivityModel) {
+  return await this.find().where('date').equals(undefined);
+};
+ActivitySchema.statics.getEvents = async function (this: ActivityModel) {
+  return await this.find().where('date').ne(undefined);
+};
+/**
+ *
+ * ale jesli nie damy await, to zwrocimy queryObjet, po ktory mozna wykorzsytac tak
+ *   jak zwykly find?
+ *   np :
+ * const templatesCount = await Activity.getTemplates().count()
+ *
+ * albo:
+ *
+ * await Activity.getTemplates().where('date_start').gt(date.now())
+ * ?? przeszloby? do zbadania!
+ *
+ * alboo:
+ *
+ * await Activity.findEvents()
+ * .where('date_start')
+ * .gt(<begginingOfThisMonth>)
+ * .where('date_stop)
+ * .lt(<endOfThisMonth>)
+ *
+ */
+ActivitySchema.index(
+  { date: 1, name: 1 },
+  {
+    unique: true,
+    ignoreUndefined: false
+  }
+);
+export const Activity = model<ActivityDocument, ActivityModel>('Activity', ActivitySchema);

@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
-import mongoose, { Document, FilterQuery, Model, Query, QuerySelector, Types } from 'mongoose';
+import { Document, Model, Query, Types, Schema, model } from 'mongoose';
+import { AppError } from 'src/utils';
 import { generateResetToken } from 'src/utils/authUtils';
 import isEmail from 'validator/lib/isEmail';
-import { CategoryModel } from './categories';
-const { Schema, model } = mongoose;
+import { Category, CategoryModel, ICategory } from './categories';
 //https://github.com/Automattic/mongoose/issues/9535#issuecomment-727039299
 type Role = 'client' | 'artist';
 
@@ -17,7 +17,7 @@ export interface IBaseUser {
 }
 export interface IUser extends IBaseUser {
   role: Role;
-  categories?: mongoose.Types.ObjectId[];
+  categories?: Types.ObjectId[];
   password: string;
   passwordConfirm: string | undefined;
   passwordChangedAt: Date;
@@ -27,7 +27,9 @@ export interface IUser extends IBaseUser {
 }
 export interface UserDocument extends IUser, Document {
   categories: Types.Array<CategoryModel['_id']>;
-  createResetPasswordToken(): string;
+  createResetPasswordToken(): Promise<string>;
+  removeResetPasswordToken(): Promise<void>;
+  addCategory(name: string): Promise<void>;
 }
 export interface UserDocumentWithCategories extends UserDocument {
   // if line below creates errors, try to make it an array of ICategory instead of categoryModel (not to extend Model, Document or whatever)
@@ -50,7 +52,7 @@ const UserSchema = new Schema<IUser, Model<IUser>>({
   ig: { type: String, requried: false },
   facebook: { type: String, requried: false },
   categories: {
-    type: [mongoose.Schema.Types.ObjectId],
+    type: [Schema.Types.ObjectId],
     ref: 'Category',
     default: []
   },
@@ -115,12 +117,30 @@ UserSchema.pre<Query<UserDocument, UserDocument>>(/^find/, async function (next)
   next();
 });
 
-UserSchema.methods.createResetPasswordToken = function (this: UserDocument) {
+UserSchema.methods.addCategory = async function (this: UserDocument, name: string) {
+  const { categories } = await this.populate({ path: 'categories' });
+  const categoryNameOccupied = categories.find((category: ICategory) => category.name === name);
+
+  if (categoryNameOccupied) {
+    throw new AppError('User already has a category with given name', 400);
+  }
+  const newCategory = new Category({ name });
+  await newCategory.save();
+
+  this.categories.push(newCategory._id);
+  await this.save();
+};
+UserSchema.methods.createResetPasswordToken = async function (this: UserDocument) {
   const { expiresIn, hashed, token } = generateResetToken();
   this.resetPassword = hashed;
   this.resetPasswordExpires = expiresIn;
-
+  await this.save();
   return token;
+};
+UserSchema.methods.removeResetPasswordToken = async function (this: UserDocument) {
+  this.resetPassword = undefined;
+  this.resetPasswordExpires = undefined;
+  await this.save();
 };
 
 UserSchema.index({ email: 1 }, { unique: true });
