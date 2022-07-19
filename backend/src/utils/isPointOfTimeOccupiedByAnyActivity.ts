@@ -5,10 +5,10 @@ export const isPointOfTimeOccupiedByAnyActivity = async (point: Date) => {
       $exists: true
     },
     stop_time: {
-      $gt: point
+      $gte: point
     },
     start_time: {
-      $lt: point
+      $lte: point
     }
   });
   return foundColisions.length > 0;
