@@ -1,14 +1,13 @@
 import { Schema, model, Types, Document, Model } from 'mongoose';
 import { isDateValid } from 'src/utils';
-import { validateTime } from 'src/utils/validators';
 import { StepModel } from './steps';
 
 export interface IActivity {
   name?: string;
   color?: string;
   date?: Date; // null (it's a template) or Date object (it's put on callendar)
-  start_time: string; // e.g. '12:25'
-  stop_time: string;
+  start_time: Date;
+  stop_time: Date;
   description?: string;
   step?: Types.ObjectId;
 }
@@ -44,35 +43,20 @@ const ActivitySchema = new Schema<ActivityDocument, ActivityModel>(
         },
         'Name is required'
       ],
-      maxlength: [20, 'Name can be 20 characters long at max']
+      maxlength: [50, 'Name can be 50 characters long at max']
     },
     color: String,
     description: { type: String },
     date: {
-      type: Date,
-      validate: [
-        // eslint-disable-next-line no-unused-vars
-        function (this: IActivity) {
-          return isDateValid(this.date);
-        },
-        'Date has to be in format: YYYY-MM-DD'
-      ]
+      type: Date
     },
     start_time: {
-      type: String,
-      required: [true, 'Start time is required'],
-      validate: {
-        validator: validateTime,
-        message: 'invalid start time'
-      }
+      type: Date,
+      required: [true, 'Start time is required']
     },
     stop_time: {
-      type: String,
-      required: [true, 'Start time is required'],
-      validate: {
-        validator: validateTime,
-        message: 'invalid stop time'
-      }
+      type: Date,
+      required: [true, 'Start time is required']
     },
     step: {
       type: Schema.Types.ObjectId,
