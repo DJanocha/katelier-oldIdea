@@ -2,12 +2,13 @@ import { User } from 'src/models';
 import { connectDB, clearDB, closeDB } from 'src/tests/db';
 import {
   loginAs,
+  PasswordVariant,
+  propertiesBlockedFromBeingModified,
+  register,
   updateUserData,
   updateUserPassword,
-  propertiesBlockedFromBeingModified,
-  UpdateUserPasswordInput,
-  PasswordVariant
-} from 'src/utils/authUtils';
+  UpdateUserPasswordInput
+} from 'src/services/authService';
 
 const tooShortPassword = '123';
 const validPassword = 'dupadupa';
@@ -33,44 +34,48 @@ afterAll(async () => await closeDB());
 describe('register', () => {
   let usersCountBefore: number;
   beforeEach(async () => {
-    const currentUser = new User({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
-    await currentUser.save();
+    await register({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
     usersCountBefore = await User.find().count();
   });
   afterEach(async () => await clearDB());
 
   describe('given not matching passwords ', () => {
     it('Does not let user register ', async () => {
-      const newUser = new User({ email: validEmail, password: validPassword, passwordConfirm: tooShortPassword });
-      await expect(newUser.save()).rejects.toThrow();
+      await expect(
+        register({ email: validEmail, password: validPassword, passwordConfirm: tooShortPassword })
+      ).rejects.toThrow();
       await expect(User.find()).resolves.toHaveLength(usersCountBefore);
     });
   });
   describe('given too short passwords', () => {
     it('Does not let user register ', async () => {
-      const newUser = new User({ email: validEmail, password: tooShortPassword, passwordConfirm: tooShortPassword });
-      await expect(newUser.save()).rejects.toThrow();
+      await expect(
+        register({ email: validEmail, password: tooShortPassword, passwordConfirm: tooShortPassword })
+      ).rejects.toThrow();
       await expect(User.find()).resolves.toHaveLength(usersCountBefore);
     });
   });
   describe('given invalid email ', () => {
     it('Does not let user register ', async () => {
-      const newUser = new User({ email: invalidEmail, password: tooShortPassword, passwordConfirm: tooShortPassword });
-      await expect(newUser.save()).rejects.toThrow();
+      await expect(
+        register({ email: invalidEmail, password: tooShortPassword, passwordConfirm: tooShortPassword })
+      ).rejects.toThrow();
       await expect(User.find()).resolves.toHaveLength(usersCountBefore);
     });
   });
   describe('given already taken email', () => {
     it('Does not let user register ', async () => {
-      const newUser = new User({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
-      await expect(newUser.save()).rejects.toThrow();
+      await expect(
+        register({ email: takenEmail, password: validPassword, passwordConfirm: validPassword })
+      ).rejects.toThrow();
       await expect(User.find()).resolves.toHaveLength(usersCountBefore);
     });
   });
   describe('given correct input', () => {
     it('Accepts user registration ', async () => {
-      const newUser = new User({ email: validEmail, password: validPassword, passwordConfirm: validPassword });
-      await expect(newUser.save()).resolves.not.toThrow();
+      await expect(
+        register({ email: validEmail, password: validPassword, passwordConfirm: validPassword })
+      ).resolves.not.toThrow();
       await expect(User.find()).resolves.toHaveLength(usersCountBefore + 1);
     });
   });
@@ -78,8 +83,7 @@ describe('register', () => {
 
 describe('login', () => {
   beforeEach(async () => {
-    const existingUser = new User({ email: validEmail, password: validPassword, passwordConfirm: validPassword });
-    await existingUser.save();
+    await register({ email: validEmail, password: validPassword, passwordConfirm: validPassword });
   });
   it('Does not let you login with incorrect email or password', async () => {
     await expect(loginAs({ email: invalidEmail, password: validPassword })).rejects.toThrow();

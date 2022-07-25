@@ -1,88 +1,115 @@
 import { Activity } from 'src/models';
+import { createEvent, createTemplate } from 'src/services/activitiesService';
 import { connectDB, clearDB, closeDB } from './db';
-
 beforeAll(async () => await connectDB());
 afterEach(async () => await clearDB());
 afterAll(async () => await closeDB());
 
-const start_time = new Date();
-start_time.setHours(12, 20);
+const time12 = new Date();
+time12.setHours(12, 20);
 
-const stop_time = new Date();
-stop_time.setHours(14, 20);
+const time14 = new Date();
+time14.setHours(14, 20);
 
-const stop_time2 = new Date();
-stop_time2.setHours(16, 20);
-const templateName = 'klasyczne kardio';
-const templateName2 = 'medytacja';
-const eventName = 'jutrzejsza wyprawa';
-const eventName2 = 'jutrzejsza meczarnia';
+const time16 = new Date();
+time16.setHours(16, 20);
+
+const time18 = new Date();
+time18.setHours(18, 20);
+
+const occupiedTemplateName = 'klasyczne kardio';
+const templateName = 'medytacja';
+const occupiedEventName = 'jutrzejsza wyprawa';
+const eventName = 'jutrzejsza meczarnia';
 const now = new Date();
 
-describe('adding new template', () => {
-  let templatesCountBefore: number;
-  let eventsCountBefore: number;
-  let allActivitiesCountBefore: number;
+const getAllActivitiesKindsCounts = async () => {
+  const temps = (await Activity.getTemplates()).length;
+  const all = (await Activity.find()).length;
+  const events = (await Activity.getEvents()).length;
+  return { temps, all, events };
+};
+describe('adding new activities', () => {
+  let allBefore: number;
+  let eventsBefore: number;
+  let tempsBefore: number;
+
+  const nextYear = new Date();
+  nextYear.setFullYear(nextYear.getFullYear() + 1);
 
   beforeEach(async () => {
-    await Activity.create({ start_time, stop_time, name: templateName });
-    await Activity.create({
-      start_time,
-      stop_time: stop_time2,
-      date: now,
-      name: eventName
-    });
-    templatesCountBefore = (await Activity.getTemplates()).length;
-    allActivitiesCountBefore = (await Activity.find()).length;
-    eventsCountBefore = (await Activity.getEvents()).length;
-  });
-  it('should return proper ammount of templates from database', async () => {
-    const temps = await Activity.getTemplates();
-    expect(temps).toHaveLength(1);
-  });
-  describe('when given invalid start-time or stop_time', () => {
-    it('should not create either event or template', async () => {
-      await expect(Activity.create({ start_time, stop_time: invalidTime, name: templateName })).rejects.toThrow();
-      await expect(Activity.create({ start_time: invalidTime, stop_time, name: templateName })).rejects.toThrow();
-      await expect(
-        Activity.create({ start_time: invalidTime, stop_time, date: Date.now(), name: eventName2 })
-      ).rejects.toThrow();
-      await expect(
-        Activity.create({ start_time, stop_time: invalidTime, date: Date.now(), name: eventName2 })
-      ).rejects.toThrow();
-    });
-  });
+    await createTemplate({ start_time: time12, stop_time: time14, name: occupiedTemplateName });
+    await createEvent({ start_time: time12, stop_time: time14, date: now, name: occupiedEventName });
 
-  describe('when creating template using uccupied name', () => {
-    it('should not create new template', async () => {
-      await expect(Activity.create({ start_time, stop_time, name: templateName })).rejects.toThrow();
-      const templatesCountAfter = (await Activity.getTemplates()).length;
-      expect(templatesCountAfter).toEqual(templatesCountBefore);
-    });
+    const { all, events, temps } = await getAllActivitiesKindsCounts();
+    eventsBefore = events;
+    tempsBefore = temps;
+    allBefore = all;
   });
-  describe('when given ok data with  date ', () => {
-    it('should create event', async () => {
-      await expect(Activity.create({ start_time, stop_time, date: now, name: templateName })
+  it('should return proper ammount of different activitites from database', async () => {
+    const { all, events, temps } = await getAllActivitiesKindsCounts();
+    expect(events).toBe(1);
+    expect(temps).toBe(1);
+    expect(all).toBe(2);
+  });
+  describe('when successfully adding template', () => {
+    it('activites quantity should be correct', async () => {
+      await expect(
+        createTemplate({ start_time: time12, stop_time: time14, name: templateName })
       ).resolves.not.toThrow();
-      const templatesCountAfter = (await Activity.getTemplates()).length;
-      const allActivitesCountAfter = (await Activity.find()).length;
-      const eventsCountAfter = (await Activity.getEvents()).length;
 
-      expect(templatesCountAfter).toEqual(templatesCountBefore);
-      expect(eventsCountAfter).toEqual(eventsCountBefore + 1);
-      expect(allActivitesCountAfter).toEqual(allActivitiesCountBefore + 1);
+      const { all, events, temps } = await getAllActivitiesKindsCounts();
+
+      expect(events).toEqual(eventsBefore);
+      expect(temps).toEqual(tempsBefore + 1);
+      expect(all).toEqual(allBefore + 1);
     });
   });
-  describe('when given ok data without date ', () => {
-    it('should create template activity', async () => {
-      await expect(Activity.create({ start_time, stop_time, name: templateName2 })).resolves.not.toThrow();
-      const templatesCountAfter = (await Activity.getTemplates()).length;
-      const allActivitesCountAfter = (await Activity.find()).length;
-      const eventsCountAfter = (await Activity.getEvents()).length;
+  describe('when successfully adding event', () => {
+    it('quantity of stored documents should be correct', async () => {
+      await expect(
+        createEvent({ date: nextYear, start_time: time16, stop_time: time18, name: eventName })
+      ).resolves.not.toThrow();
 
-      expect(templatesCountAfter).toEqual(templatesCountBefore + 1);
-      expect(eventsCountAfter).toEqual(eventsCountBefore);
-      expect(allActivitesCountAfter).toEqual(allActivitiesCountBefore + 1);
+      const { all, events, temps } = await getAllActivitiesKindsCounts();
+
+      expect(events).toEqual(eventsBefore + 1);
+      expect(temps).toEqual(tempsBefore);
+      expect(all).toEqual(allBefore + 1);
+    });
+  });
+
+  describe('when creating activities using uccupied name', () => {
+    it('should not create any', async () => {
+      await expect(
+        createTemplate({ start_time: time16, stop_time: time18, name: occupiedTemplateName })
+      ).rejects.toThrow();
+      await expect(
+        createEvent({ start_time: time16, stop_time: time18, date: now, name: occupiedEventName })
+      ).rejects.toThrow();
+
+      const { all, events, temps } = await getAllActivitiesKindsCounts();
+
+      expect(events).toEqual(eventsBefore);
+      expect(temps).toEqual(tempsBefore);
+      expect(all).toEqual(allBefore);
+    });
+  });
+
+  describe('when overlaps other event timespan', () => {
+    it('should not let create event but let create template', async () => {
+      await expect(
+        createTemplate({ start_time: time12, stop_time: time18, name: templateName })
+      ).resolves.not.toThrow();
+      await expect(
+        createEvent({ date: now, start_time: time12, stop_time: time18, name: eventName })
+      ).rejects.toThrow();
+
+      const { all, events, temps } = await getAllActivitiesKindsCounts();
+
+      expect(events).toEqual(eventsBefore);
+      expect(temps).toEqual(tempsBefore + 1);
+      expect(all).toEqual(allBefore + 1);
     });
   });
 });

@@ -2,15 +2,9 @@ import { Request, RequestHandler } from 'express';
 import { AppError, catchAsync } from 'src/utils';
 import { User, IUser } from 'src/models';
 import { sendEmail } from 'src/utils/emails';
-import {
-  createJWTandSendResponse,
-  loginAs,
-  updateUserPassword,
-  updateUserData,
-  resetUserPassword,
-  requireUserLogin
-} from 'src/utils/authUtils';
+import { createJWTandSendResponse, requireUserLogin } from 'src/utils/authUtils';
 import { IBaseUser, UserDocument } from 'src/models/users';
+import { resetUserPassword, updateUserPassword, updateUserData, loginAs } from 'src/services/authService';
 
 //routes
 export const register: RequestHandler = catchAsync(async (req, res, next) => {
