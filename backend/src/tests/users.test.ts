@@ -3,6 +3,7 @@ import { CategoryDocument } from 'src/models/categories';
 import { addCategory } from 'src/services/userService';
 import { connectDB, clearDB, closeDB } from './db';
 import { Types } from 'mongoose';
+import { register } from 'src/services/authService';
 
 beforeAll(async () => await connectDB());
 afterEach(async () => await clearDB());
@@ -19,16 +20,11 @@ describe('adding new category', () => {
   let secondUserId: Types.ObjectId;
 
   beforeEach(async () => {
-    const firstCategory: CategoryDocument = new Category({ name: firstCategoryName });
-    await firstCategory.save();
-
-    const firstUser = new User({ email: validEmail, password: validPassword, passwordConfirm: validPassword });
+    const firstUser= await register({ email: validEmail, password: validPassword, passwordConfirm: validPassword })
     firstUserId = firstUser._id;
-    firstUser.categories = [firstCategory._id];
-    await firstUser.save();
+    await addCategory(firstUser._id, firstCategoryName)
 
-    const secondUser = new User({ email: secondValidEmail, password: validPassword, passwordConfirm: validPassword });
-    await secondUser.save();
+    const secondUser = await register({ email: secondValidEmail, password: validPassword, passwordConfirm: validPassword });
     secondUserId = secondUser._id;
     categoriesCountBefore = await Category.find().count();
   });
