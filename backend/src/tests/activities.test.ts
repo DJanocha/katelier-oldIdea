@@ -1,5 +1,7 @@
+import { Types } from 'mongoose';
 import { Activity } from 'src/models';
 import { createEvent, createTemplate } from 'src/services/activitiesService';
+import { register } from 'src/services/authService';
 import { connectDB, clearDB, closeDB } from './db';
 beforeAll(async () => await connectDB());
 afterEach(async () => await clearDB());
@@ -22,6 +24,8 @@ const templateName = 'medytacja';
 const occupiedEventName = 'jutrzejsza wyprawa';
 const eventName = 'jutrzejsza meczarnia';
 const now = new Date();
+const validPassword = 'dupadupa';
+const takenEmail = 'emailfortest222222@test.test';
 
 const getAllActivitiesKindsCounts = async () => {
   const temps = (await Activity.getTemplates()).length;
@@ -33,13 +37,16 @@ describe('adding new activities', () => {
   let allBefore: number;
   let eventsBefore: number;
   let tempsBefore: number;
+  let userId: Types.ObjectId;
 
   const nextYear = new Date();
   nextYear.setFullYear(nextYear.getFullYear() + 1);
 
   beforeEach(async () => {
-    await createTemplate({ start_time: time12, stop_time: time14, name: occupiedTemplateName });
-    await createEvent({ start_time: time12, stop_time: time14, date: now, name: occupiedEventName });
+    const user = await register({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
+    userId = user._id;
+    await createTemplate({ start_time: time12, stop_time: time14, name: occupiedTemplateName, userId });
+    await createEvent({ start_time: time12, stop_time: time14, date: now, name: occupiedEventName, userId });
 
     const { all, events, temps } = await getAllActivitiesKindsCounts();
     eventsBefore = events;
@@ -55,7 +62,7 @@ describe('adding new activities', () => {
   describe('when successfully adding template', () => {
     it('activites quantity should be correct', async () => {
       await expect(
-        createTemplate({ start_time: time12, stop_time: time14, name: templateName })
+        createTemplate({ start_time: time12, stop_time: time14, name: templateName, userId })
       ).resolves.not.toThrow();
 
       const { all, events, temps } = await getAllActivitiesKindsCounts();
@@ -68,7 +75,7 @@ describe('adding new activities', () => {
   describe('when successfully adding event', () => {
     it('quantity of stored documents should be correct', async () => {
       await expect(
-        createEvent({ date: nextYear, start_time: time16, stop_time: time18, name: eventName })
+        createEvent({ date: nextYear, start_time: time16, stop_time: time18, name: eventName, userId })
       ).resolves.not.toThrow();
 
       const { all, events, temps } = await getAllActivitiesKindsCounts();
@@ -82,10 +89,10 @@ describe('adding new activities', () => {
   describe('when creating activities using uccupied name', () => {
     it('should not create any', async () => {
       await expect(
-        createTemplate({ start_time: time16, stop_time: time18, name: occupiedTemplateName })
+        createTemplate({ start_time: time16, stop_time: time18, name: occupiedTemplateName, userId })
       ).rejects.toThrow();
       await expect(
-        createEvent({ start_time: time16, stop_time: time18, date: now, name: occupiedEventName })
+        createEvent({ start_time: time16, stop_time: time18, date: now, name: occupiedEventName, userId })
       ).rejects.toThrow();
 
       const { all, events, temps } = await getAllActivitiesKindsCounts();
@@ -99,10 +106,10 @@ describe('adding new activities', () => {
   describe('when overlaps other event timespan', () => {
     it('should not let create event but let create template', async () => {
       await expect(
-        createTemplate({ start_time: time12, stop_time: time18, name: templateName })
+        createTemplate({ start_time: time12, stop_time: time18, name: templateName, userId })
       ).resolves.not.toThrow();
       await expect(
-        createEvent({ date: now, start_time: time12, stop_time: time18, name: eventName })
+        createEvent({ date: now, start_time: time12, stop_time: time18, name: eventName, userId })
       ).rejects.toThrow();
 
       const { all, events, temps } = await getAllActivitiesKindsCounts();

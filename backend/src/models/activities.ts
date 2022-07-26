@@ -10,6 +10,7 @@ export interface IActivity {
   stop_time: Date;
   description?: string;
   step?: Types.ObjectId;
+  userId: Types.ObjectId;
 }
 
 export interface ActivityDocument extends IActivity, Document {
@@ -31,6 +32,11 @@ export interface ActivityModel extends Model<IActivity> {
 
 const ActivitySchema = new Schema<ActivityDocument, ActivityModel>(
   {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
     name: {
       type: String,
       required: [
@@ -107,7 +113,7 @@ ActivitySchema.statics.getEvents = async function (this: ActivityModel) {
  *
  */
 ActivitySchema.index(
-  { date: 1, name: 1 },
+  { name: 1, userId: 1, date: 1 },
   {
     unique: true,
     ignoreUndefined: false
