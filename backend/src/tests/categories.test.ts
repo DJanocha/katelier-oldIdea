@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import { connectDB, clearDB, closeDB } from './db';
 import { addProject } from 'src/services/projectService';
 import { register } from 'src/services/authService';
-import { addCategory } from 'src/services/userService';
+import { addCategory } from 'src/services/categoriesService';
 import { countAllProjects } from 'src/services/projectService';
 
 beforeAll(async () => await connectDB());

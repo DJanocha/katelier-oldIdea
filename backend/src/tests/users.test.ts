@@ -1,4 +1,4 @@
-import { addCategory } from 'src/services/userService';
+import { addCategory } from 'src/services/categoriesService';
 import { connectDB, clearDB, closeDB } from './db';
 import { Types } from 'mongoose';
 import { register } from 'src/services/authService';

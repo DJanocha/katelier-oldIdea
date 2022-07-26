@@ -1,3 +1,5 @@
+
+import { Types } from 'mongoose';
 import { AppError } from 'src/utils';
 import { Activity, IActivity } from 'src/models/activities';
 import { isPointOfTimeOccupiedByAnyActivity } from 'src/utils/isPointOfTimeOccupiedByAnyActivity';
@@ -16,7 +18,7 @@ export const getEvents = async()=>Activity.find().where('date').exists(true)
 export const getTemplates = async()=>Activity.find().where('date').exists(false)
 export const getActivities = async()=> Activity.find();
 
-export const createEvent = async (newEvent: IActivity & { date: Date }) => {
+export const createEvent = async (newEvent: IActivity & { date: Date, userId: Types.ObjectId }) => {
   const { start_time, stop_time, name, description, date, color, userId } = newEvent;
   const user = User.findById<UserDocument>(userId);
 
@@ -46,7 +48,7 @@ export const createEvent = async (newEvent: IActivity & { date: Date }) => {
   return Activity.create(newEvent);
 };
 
-export const createTemplate = async (newTemplate: Omit<IActivity, 'date'>) => {
+export const createTemplate = async (newTemplate: Omit<IActivity, 'date'> & {userId : Types.ObjectId}) => {
   const { name, userId } = newTemplate;
   const user = User.findById<UserDocument>(userId);
 
