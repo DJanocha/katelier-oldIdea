@@ -47,7 +47,7 @@ export const createEvent = async (newEvent: IActivity & { date: Date }) => {
 };
 
 export const createTemplate = async (newTemplate: Omit<IActivity, 'date'>) => {
-  const { start_time, stop_time, name, description, color, userId } = newTemplate;
+  const { name, userId } = newTemplate;
   const user = User.findById<UserDocument>(userId);
 
   if (!user) {
