@@ -12,6 +12,10 @@ const mergeDateTime = ({ time, date }: { time: Date; date: Date }) => {
   return merged;
 };
 
+export const getEvents = async()=>Activity.find().where('date').exists(true)
+export const getTemplates = async()=>Activity.find().where('date').exists(false)
+export const getActivities = async()=> Activity.find();
+
 export const createEvent = async (newEvent: IActivity & { date: Date }) => {
   const { start_time, stop_time, name, description, date, color, userId } = newEvent;
   const user = User.findById<UserDocument>(userId);

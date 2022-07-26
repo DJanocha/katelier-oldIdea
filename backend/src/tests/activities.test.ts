@@ -1,6 +1,5 @@
 import { Types } from 'mongoose';
-import { Activity } from 'src/models';
-import { createEvent, createTemplate } from 'src/services/activitiesService';
+import { createEvent, createTemplate, getActivities, getEvents, getTemplates } from 'src/services/activitiesService';
 import { register } from 'src/services/authService';
 import { connectDB, clearDB, closeDB } from './db';
 beforeAll(async () => await connectDB());
@@ -28,9 +27,10 @@ const validPassword = 'dupadupa';
 const takenEmail = 'emailfortest222222@test.test';
 
 const getAllActivitiesKindsCounts = async () => {
-  const temps = (await Activity.getTemplates()).length;
-  const all = (await Activity.find()).length;
-  const events = (await Activity.getEvents()).length;
+  // const temps = (await Activity.getTemplates()).length;
+  const temps = (await getTemplates()).length;
+  const all = (await getActivities()).length;
+  const events = (await getEvents()).length;
   return { temps, all, events };
 };
 describe('adding new activities', () => {

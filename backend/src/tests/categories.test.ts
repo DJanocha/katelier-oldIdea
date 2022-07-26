@@ -1,9 +1,9 @@
 import { Types } from 'mongoose';
-import { Category, Project } from 'src/models';
 import { connectDB, clearDB, closeDB } from './db';
 import { addProject } from 'src/services/categoriesService';
 import { register } from 'src/services/authService';
 import { addCategory } from 'src/services/userService';
+import { countAllProjects } from 'src/services/projectService';
 
 beforeAll(async () => await connectDB());
 afterEach(async () => await clearDB());
@@ -29,7 +29,7 @@ describe('adding new project', () => {
     firstCategoryId = firstCategory._id;
     const secondCategory = await addCategory(user._id, secondCategoryName);
     secondCategoryId = secondCategory._id;
-    projectsCountBefore = await Project.find().count();
+    projectsCountBefore = await countAllProjects()
   });
 
   describe('given project name', () => {
@@ -37,21 +37,21 @@ describe('adding new project', () => {
       it('Should NOT let create new project', async () => {
         await expect(addProject(userId, firstCategoryId, firstProjectName)).rejects.toThrow();
 
-        const projectsAfter = await Project.find().count();
+        const projectsAfter = await countAllProjects()
         expect(projectsAfter).toEqual(projectsCountBefore);
       });
     });
     describe('given project name NOT occupied yet by given category ', () => {
       it('Should create new project', async () => {
         await expect(addProject(userId, secondCategoryId, firstProjectName)).resolves.not.toThrow();
-        const projectsAfter = await Project.find().count();
+        const projectsAfter = await countAllProjects()
         expect(projectsAfter).toEqual(projectsCountBefore + 1);
       });
     });
     describe('given project name used by OTHER category', () => {
       it('Should create new project', async () => {
         await expect(addProject(userId, secondCategoryId, firstProjectName)).resolves.not.toThrow();
-        const projectsAfter = await Project.find().count();
+        const projectsAfter = await countAllProjects()
         expect(projectsAfter).toEqual(projectsCountBefore + 1);
       });
     });
