@@ -1,59 +1,58 @@
-import { Types } from 'mongoose';
-import { connectDB, clearDB, closeDB } from './db';
-import { addProject } from 'src/services/projectService';
-import { register } from 'src/services/authService';
 import { addCategory } from 'src/services/categoriesService';
-import { countAllProjects } from 'src/services/projectService';
+import { connectDB, clearDB, closeDB } from './db';
+import { Types } from 'mongoose';
+import { register } from 'src/services/authService';
+import { countAllCategoies } from 'src/services/categoriesService';
 
 beforeAll(async () => await connectDB());
 afterEach(async () => await clearDB());
 afterAll(async () => await closeDB());
 
 const validPassword = 'dupadupa';
-const takenEmail = 'emailfortest222222@test.test';
+const validEmail = 'emailfortesttt@test.test';
+const secondValidEmail = 'second' + validEmail;
 const firstCategoryName = 'first category';
-const secondCategoryName = 'second category';
-const firstProjectName = 'first project name';
-describe('adding new project', () => {
-  let projectsCountBefore: number;
-  let firstCategoryId: Types.ObjectId;
-  let secondCategoryId: Types.ObjectId;
-  let userId: Types.ObjectId;
+
+describe('adding new category', () => {
+  let categoriesCountBefore: number;
+  let firstUserId: Types.ObjectId;
+  let secondUserId: Types.ObjectId;
 
   beforeEach(async () => {
-    const user = await register({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
-    userId = user._id;
-    const firstCategory = await addCategory(userId, firstCategoryName);
-    await addProject(user._id, firstCategory._id, firstProjectName);
+    const firstUser = await register({ email: validEmail, password: validPassword, passwordConfirm: validPassword });
+    firstUserId = firstUser._id;
+    await addCategory(firstUser._id, firstCategoryName);
 
-    firstCategoryId = firstCategory._id;
-    const secondCategory = await addCategory(user._id, secondCategoryName);
-    secondCategoryId = secondCategory._id;
-    projectsCountBefore = await countAllProjects()
+    const secondUser = await register({
+      email: secondValidEmail,
+      password: validPassword,
+      passwordConfirm: validPassword
+    });
+    secondUserId = secondUser._id;
+    categoriesCountBefore = await countAllCategoies();
   });
 
-  describe('given project name', () => {
-    describe('given already occupied project name for given category', () => {
-      it('Should NOT let create new project', async () => {
-        await expect(addProject(userId, firstCategoryId, firstProjectName)).rejects.toThrow();
+  describe('given already occupied category name for given user', () => {
+    it('Should not let create the category ', async () => {
+      await expect(addCategory(firstUserId, firstCategoryName)).rejects.toThrow();
 
-        const projectsAfter = await countAllProjects()
-        expect(projectsAfter).toEqual(projectsCountBefore);
-      });
+      const categoriesAfter = await countAllCategoies();
+      expect(categoriesAfter).toEqual(categoriesCountBefore);
     });
-    describe('given project name NOT occupied yet by given category ', () => {
-      it('Should create new project', async () => {
-        await expect(addProject(userId, secondCategoryId, firstProjectName)).resolves.not.toThrow();
-        const projectsAfter = await countAllProjects()
-        expect(projectsAfter).toEqual(projectsCountBefore + 1);
-      });
+  });
+  describe('given category name not occupied yet by given user', () => {
+    it('Should create new category', async () => {
+      await expect(addCategory(firstUserId, firstCategoryName + '1')).resolves.not.toThrow();
+
+      const categoriesAfter = await countAllCategoies()
+      expect(categoriesAfter).toEqual(categoriesCountBefore + 1);
     });
-    describe('given project name used by OTHER category', () => {
-      it('Should create new project', async () => {
-        await expect(addProject(userId, secondCategoryId, firstProjectName)).resolves.not.toThrow();
-        const projectsAfter = await countAllProjects()
-        expect(projectsAfter).toEqual(projectsCountBefore + 1);
-      });
+  });
+  describe('given category name used by someone else but not given user', () => {
+    it('Should create new category', async () => {
+      await expect(addCategory(secondUserId, firstCategoryName)).resolves.not.toThrow();
+      const categoriesAfter = await countAllCategoies()
+      expect(categoriesAfter).toEqual(categoriesCountBefore + 1);
     });
   });
 });
