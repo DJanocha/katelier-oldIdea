@@ -1,4 +1,3 @@
-import { User } from 'src/models';
 import { connectDB, clearDB, closeDB } from 'src/tests/db';
 import {
   loginAs,
@@ -9,6 +8,7 @@ import {
   updateUserPassword,
   UpdateUserPasswordInput
 } from 'src/services/authService';
+import { countUsers, getUserByEmail } from 'src/services/userService';
 
 const tooShortPassword = '123';
 const validPassword = 'dupadupa';
@@ -35,7 +35,7 @@ describe('register', () => {
   let usersCountBefore: number;
   beforeEach(async () => {
     await register({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
-    usersCountBefore = await User.find().count();
+    usersCountBefore = await countUsers()
   });
   afterEach(async () => await clearDB());
 
@@ -44,7 +44,7 @@ describe('register', () => {
       await expect(
         register({ email: validEmail, password: validPassword, passwordConfirm: tooShortPassword })
       ).rejects.toThrow();
-      await expect(User.find()).resolves.toHaveLength(usersCountBefore);
+      await expect(countUsers()).resolves.toEqual(usersCountBefore);
     });
   });
   describe('given too short passwords', () => {
@@ -52,7 +52,7 @@ describe('register', () => {
       await expect(
         register({ email: validEmail, password: tooShortPassword, passwordConfirm: tooShortPassword })
       ).rejects.toThrow();
-      await expect(User.find()).resolves.toHaveLength(usersCountBefore);
+      await expect(countUsers()).resolves.toEqual(usersCountBefore);
     });
   });
   describe('given invalid email ', () => {
@@ -60,7 +60,7 @@ describe('register', () => {
       await expect(
         register({ email: invalidEmail, password: tooShortPassword, passwordConfirm: tooShortPassword })
       ).rejects.toThrow();
-      await expect(User.find()).resolves.toHaveLength(usersCountBefore);
+      await expect(countUsers()).resolves.toEqual(usersCountBefore);
     });
   });
   describe('given already taken email', () => {
@@ -68,7 +68,7 @@ describe('register', () => {
       await expect(
         register({ email: takenEmail, password: validPassword, passwordConfirm: validPassword })
       ).rejects.toThrow();
-      await expect(User.find()).resolves.toHaveLength(usersCountBefore);
+      await expect(countUsers()).resolves.toEqual(usersCountBefore);
     });
   });
   describe('given correct input', () => {
@@ -76,7 +76,7 @@ describe('register', () => {
       await expect(
         register({ email: validEmail, password: validPassword, passwordConfirm: validPassword })
       ).resolves.not.toThrow();
-      await expect(User.find()).resolves.toHaveLength(usersCountBefore + 1);
+      await expect(countUsers()).resolves.toEqual(usersCountBefore + 1);
     });
   });
 });
@@ -128,11 +128,10 @@ describe('update password', () => {
 });
 describe('update me', () => {
   beforeEach(async () => {
-    const newUser = new User({ email: validEmail, password: validPassword, passwordConfirm: validPassword });
-    await newUser.save();
+   await register({ email: validEmail, password: validPassword, passwordConfirm: validPassword });
   });
   it('Should not let to update password in update me route', async () => {
-    await expect(User.find({ email: validEmail })).resolves.not.toThrow();
+    await expect(getUserByEmail(validEmail)).resolves.not.toThrow();
     const dataVariants: Record<string, string>[] = [
       { newPassword: validPassword },
       { newPasswordConfirm: validPassword },
@@ -159,7 +158,7 @@ describe('update me', () => {
     });
   });
   it('Should not update values that are not allowed', async () => {
-    const user = (await User.findOne({ email: validEmail })) as Record<string, any>;
+    const user = (await getUserByEmail(validEmail)) as Record<string, any>;
     expect(user).not.toBeNull();
     const data = getUserDataToUpdate() as Record<string, any>;
     const updatedUser = (await updateUserData({ email: validEmail, data })) as Record<string, any>;

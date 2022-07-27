@@ -1,6 +1,6 @@
 import { Schema, model, Types, Document } from 'mongoose';
 import { AppError } from 'src/utils';
-import { Project, ProjectModel } from './projects';
+import { Project, ProjectDocument, ProjectModel } from './projects';
 export interface ICategory {
   name: string;
   description: string;
@@ -11,7 +11,7 @@ export interface ICategory {
 
 export interface CategoryDocument extends ICategory, Document {
   projects: Types.Array<ProjectModel['_id']>;
-  addProject(newProjectName: string): Promise<void>;
+  addProject(newProjectName: string): Promise<ProjectDocument>;
 }
 export interface CategoryDocumentWithProjects extends CategoryDocument {
   projects: Types.Array<ProjectModel>;
@@ -45,8 +45,9 @@ CategorySchema.methods.addProject = async function (this: CategoryDocument, newP
   }
   const newProject = new Project({ name: newProjectName, category: this._id });
   await newProject.save();
-  this.projects.push();
+  this.projects.push(newProject._id);
   await this.save();
+  return newProject
 };
 
 export const Category = model<CategoryDocument>('Category', CategorySchema);

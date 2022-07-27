@@ -3,7 +3,7 @@ import { Document, Model, Query, Types, Schema, model } from 'mongoose';
 import { AppError } from 'src/utils';
 import { generateResetToken } from 'src/utils/authUtils';
 import isEmail from 'validator/lib/isEmail';
-import { Category, CategoryModel, ICategory } from './categories';
+import { Category, CategoryDocument, CategoryModel, ICategory } from './categories';
 //https://github.com/Automattic/mongoose/issues/9535#issuecomment-727039299
 type Role = 'client' | 'artist';
 
@@ -29,7 +29,7 @@ export interface UserDocument extends IUser, Document {
   categories: Types.Array<CategoryModel['_id']>;
   createResetPasswordToken(): Promise<string>;
   removeResetPasswordToken(): Promise<void>;
-  addCategory(name: string): Promise<void>;
+  addCategory(name: string): Promise<CategoryDocument>;
 }
 export interface UserDocumentWithCategories extends UserDocument {
   // if line below creates errors, try to make it an array of ICategory instead of categoryModel (not to extend Model, Document or whatever)
@@ -129,6 +129,7 @@ UserSchema.methods.addCategory = async function (this: UserDocument, name: strin
 
   this.categories.push(newCategory._id);
   await this.save();
+  return newCategory;
 };
 UserSchema.methods.createResetPasswordToken = async function (this: UserDocument) {
   const { expiresIn, hashed, token } = generateResetToken();

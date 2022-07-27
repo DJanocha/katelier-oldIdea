@@ -1,13 +1,17 @@
-import { Types } from 'mongoose';
-import { Category, CategoryDocument } from 'src/models/categories';
+import { Types } from 'mongoose'
+import { UserDocument, User } from 'src/models/users';
+import { Category } from 'src/models/categories';
 import { AppError } from 'src/utils';
 
-export const addProject = async (categoryId: Types.ObjectId, newProjectName: string) => {
-  const category: CategoryDocument | null = await Category.findById<CategoryDocument>(categoryId);
-
-  if (!category) {
-    throw new AppError('could not find the category', 400);
+export const countAllCategoies = async () => {
+  const count = await Category.find().count();
+  return count;
+};
+export const addCategory = async (userId: Types.ObjectId, newCategoryName: string) => {
+  const user: UserDocument | null = await User.findById<UserDocument>(userId);
+  if (!user) {
+    throw new AppError('Incorrect user', 400);
   }
 
-  return category.addProject(newProjectName);
+  return user.addCategory(newCategoryName);
 };
