@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { Project } from "src/models";
+import {Project, ProjectDocument } from 'src/models/projects';
 import { Category, CategoryDocument } from "src/models/categories";
 import { User, UserDocument } from "src/models/users";
 import { AppError } from "src/utils";
@@ -15,4 +15,15 @@ export const addProject = async (userId: Types.ObjectId, categoryId: Types.Objec
   }
 
   return category.addProject(newProjectName);
+};
+
+export const removeProject = async (projectId: Types.ObjectId) => {
+  const project: ProjectDocument | null = await Project.findById(projectId);
+  if (!project) {
+    throw new AppError('could not find the category', 400);
+  }
+  if (project.steps.length > 0) {
+    throw new AppError('cannot remove project that is not empty', 400);
+  }
+  return project.remove();
 };
