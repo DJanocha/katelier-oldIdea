@@ -1,10 +1,19 @@
 import { Types } from "mongoose";
-import {Project, ProjectDocument } from 'src/models/projects';
+import {IProject, Project, ProjectDocument } from 'src/models/projects';
 import { Category, CategoryDocument } from "src/models/categories";
 import { User, UserDocument } from "src/models/users";
 import { AppError } from "src/utils";
 
 export const countAllProjects = async () => Project.find().count()
+
+export const getAllProjects = async (categoryId: Types.ObjectId) => {
+  const category : CategoryDocument | null = await Category.findById(categoryId)
+  if(!category){
+
+    throw new AppError('could not find the category', 400);
+  }
+  return category.projects;
+}
 
 export const addProject = async (userId: Types.ObjectId, categoryId: Types.ObjectId, newProjectName: string) => {
   const category: CategoryDocument | null = await Category.findById<CategoryDocument>(categoryId);
@@ -16,6 +25,12 @@ export const addProject = async (userId: Types.ObjectId, categoryId: Types.Objec
 
   return category.addProject(newProjectName);
 };
+
+export const getProject = async(projectId: Types.ObjectId)=> Project.findById(projectId);
+
+type ProjectMutation = Pick<IProject, "name" | "description"> & { projectId : Types.ObjectId}
+
+export const updateProject = async({projectId, ...data}:ProjectMutation) => Project.findByIdAndUpdate(projectId, data)
 
 export const removeProject = async (projectId: Types.ObjectId) => {
   const project: ProjectDocument | null = await Project.findById(projectId);
