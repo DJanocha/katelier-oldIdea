@@ -28,7 +28,7 @@ export const addProject = async (userId: Types.ObjectId, categoryId: Types.Objec
 
 export const getProject = async(projectId: Types.ObjectId)=> Project.findById(projectId);
 
-type ProjectMutation = Pick<IProject, "name" | "description"> & { projectId : Types.ObjectId}
+type ProjectMutation = Partial<Pick<IProject, "name" | "description" | "client_info">> & { projectId : Types.ObjectId}
 
 export const updateProject = async({projectId, ...data}:ProjectMutation) => Project.findByIdAndUpdate(projectId, data)
 

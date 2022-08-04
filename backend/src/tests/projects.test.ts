@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import { connectDB, clearDB, closeDB } from './db';
 import { addProject, removeProject } from 'src/services/projectService';
-import { register } from 'src/services/authService';
+import { register, registerArtist } from 'src/services/authService';
 import { addCategory } from 'src/services/categoriesService';
 import { countAllProjects } from 'src/services/projectService';
 import { addStep } from 'src/services/stepService';
@@ -30,7 +30,7 @@ describe('adding new project', () => {
   let userId: Types.ObjectId;
 
   beforeEach(async () => {
-    const user = await register({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
+    const user = await registerArtist({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
     userId = user._id;
     const firstCategory = await addCategory(userId, firstCategoryName);
     await addProject(user._id, firstCategory._id, firstProjectName);
@@ -74,7 +74,11 @@ describe('removing a project', () => {
   let secondProjectId: Types.ObjectId;
 
   beforeEach(async () => {
-    const firstUser = await register({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
+    const firstUser = await registerArtist({
+      email: takenEmail,
+      password: validPassword,
+      passwordConfirm: validPassword
+    });
     const firstCategory = await addCategory(firstUser._id, firstCategoryName);
     firstCategoryId = firstCategory._id;
     await addCategory(firstUser._id, secondCategoryName);
@@ -109,3 +113,5 @@ describe('removing a project', () => {
     });
   });
 });
+
+// describe('listing projects for given category', () => {});

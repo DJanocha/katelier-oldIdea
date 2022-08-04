@@ -5,7 +5,8 @@ import { generateResetToken } from 'src/utils/authUtils';
 import isEmail from 'validator/lib/isEmail';
 import { Category, CategoryDocument, CategoryModel, ICategory } from './categories';
 //https://github.com/Automattic/mongoose/issues/9535#issuecomment-727039299
-type Role = 'client' | 'artist';
+const allRolesPosibilities = ['client', 'artist'] as const;
+export type Role = typeof allRolesPosibilities[number];
 
 export interface IBaseUser {
   name: string;
@@ -14,9 +15,9 @@ export interface IBaseUser {
   ig: string;
   facebook: string;
   image?: string;
+  role: Role;
 }
 export interface IUser extends IBaseUser {
-  role: Role;
   categories?: Types.ObjectId[];
   password: string;
   passwordConfirm: string | undefined;
@@ -62,7 +63,7 @@ const UserSchema = new Schema<IUser, Model<IUser>>({
   },
   role: {
     type: String,
-    default: 'client'
+    enum: allRolesPosibilities
   },
   password: {
     type: String,
