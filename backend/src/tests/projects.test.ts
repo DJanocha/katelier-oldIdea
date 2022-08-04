@@ -27,25 +27,25 @@ describe('adding new project', () => {
   let projectsCountBefore: number;
   let firstCategoryId: Types.ObjectId;
   let secondCategoryId: Types.ObjectId;
-  let userId: Types.ObjectId;
+  let artistId: Types.ObjectId;
 
   beforeEach(async () => {
-    const user = await registerArtist({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
-    userId = user._id;
-    const firstCategory = await addCategory(userId, firstCategoryName);
-    await addProject(user._id, firstCategory._id, firstProjectName);
+    const artist = await registerArtist({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
+    artistId = artist._id;
+    const firstCategory = await addCategory(artistId, firstCategoryName);
+    await addProject(artist._id, firstCategory._id, firstProjectName);
 
     firstCategoryId = firstCategory._id;
-    const secondCategory = await addCategory(user._id, secondCategoryName);
+    const secondCategory = await addCategory(artist._id, secondCategoryName);
     secondCategoryId = secondCategory._id;
-    await addProject(userId, firstCategoryId, projectName);
+    await addProject(artistId, firstCategoryId, projectName);
     projectsCountBefore = await countAllProjects();
   });
 
   describe('given project name', () => {
     describe('given already occupied project name for given category', () => {
       it('Should NOT let create new project', async () => {
-        await expect(addProject(userId, firstCategoryId, firstProjectName)).rejects.toThrow();
+        await expect(addProject(artistId, firstCategoryId, firstProjectName)).rejects.toThrow();
 
         const projectsAfter = await countAllProjects();
         expect(projectsAfter).toEqual(projectsCountBefore);
@@ -53,14 +53,14 @@ describe('adding new project', () => {
     });
     describe('given project name NOT occupied yet by given category ', () => {
       it('Should create new project', async () => {
-        await expect(addProject(userId, secondCategoryId, firstProjectName)).resolves.not.toThrow();
+        await expect(addProject(artistId, secondCategoryId, firstProjectName)).resolves.not.toThrow();
         const projectsAfter = await countAllProjects();
         expect(projectsAfter).toEqual(projectsCountBefore + 1);
       });
     });
     describe('given project name used by OTHER category', () => {
       it('Should create new project', async () => {
-        await expect(addProject(userId, secondCategoryId, firstProjectName)).resolves.not.toThrow();
+        await expect(addProject(artistId, secondCategoryId, firstProjectName)).resolves.not.toThrow();
         const projectsAfter = await countAllProjects();
         expect(projectsAfter).toEqual(projectsCountBefore + 1);
       });
@@ -74,17 +74,17 @@ describe('removing a project', () => {
   let secondProjectId: Types.ObjectId;
 
   beforeEach(async () => {
-    const firstUser = await registerArtist({
+    const artist = await registerArtist({
       email: takenEmail,
       password: validPassword,
       passwordConfirm: validPassword
     });
-    const firstCategory = await addCategory(firstUser._id, firstCategoryName);
+    const firstCategory = await addCategory(artist._id, firstCategoryName);
     firstCategoryId = firstCategory._id;
-    await addCategory(firstUser._id, secondCategoryName);
-    const firstProject = await addProject(firstUser._id, firstCategory._id, firstProjectName);
+    await addCategory(artist._id, secondCategoryName);
+    const firstProject = await addProject(artist._id, firstCategory._id, firstProjectName);
     firstProjectId = firstProject._id;
-    const secondProject = await addProject(firstUser._id, firstCategory._id, secondProjectName);
+    const secondProject = await addProject(artist._id, firstCategory._id, secondProjectName);
     secondProjectId = secondProject._id;
 
     await addStep({
@@ -93,7 +93,7 @@ describe('removing a project', () => {
       projectId: firstProjectId,
       start_time: time12,
       stop_time: time14,
-      userId: firstUser._id
+      userId: artist._id
     });
   });
   describe('given not empty project', () => {
