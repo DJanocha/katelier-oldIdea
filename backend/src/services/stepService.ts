@@ -46,8 +46,9 @@ export const deleteStep = async (stepId: Types.ObjectId) => Step.findByIdAndDele
 
 export const getStep = async (stepId: Types.ObjectId) => Step.findById(stepId);
 
-export const getAllSteps = async (projectId: Types.ObjectId) => {
-  const project: ProjectDocument | null = await Project.findById(projectId);
+export const getAllSteps = async (id: string) => {
+  const projectId = new Types.ObjectId(id);
+  const project: ProjectDocument | null = await Project.findById(projectId).populate('steps');
   if (!project) {
     throw new AppError('could not find the project', 400);
   }
