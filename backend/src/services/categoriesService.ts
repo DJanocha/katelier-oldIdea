@@ -4,7 +4,7 @@ import { Category, CategoryDocument, ICategory } from 'src/models/categories';
 import { AppError } from 'src/utils';
 import { Step } from 'src/models';
 
-export const countAllCategoies = async () => {
+export const countAllCategories = async () => {
   const count = await Category.find().count();
   return count;
 };

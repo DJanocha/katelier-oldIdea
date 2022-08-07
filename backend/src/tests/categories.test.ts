@@ -2,7 +2,7 @@ import { addCategory, removeCategory } from 'src/services/categoriesService';
 import { connectDB, clearDB, closeDB } from './db';
 import { Types } from 'mongoose';
 import { register, registerArtist } from 'src/services/authService';
-import { countAllCategoies } from 'src/services/categoriesService';
+import { countAllCategories } from 'src/services/categoriesService';
 import { addProject } from 'src/services/projectService';
 import { sample } from 'src/utils';
 
@@ -30,14 +30,14 @@ describe('adding new category', () => {
       passwordConfirm: sample.pass.valid
     });
     clientUserId = clientUser._id;
-    categoriesCountBefore = await countAllCategoies();
+    categoriesCountBefore = await countAllCategories();
   });
 
   describe('given already occupied category name for given user', () => {
     it('Should not let create the category ', async () => {
       await expect(addCategory(artistUserId, sample.names.category[0])).rejects.toThrow();
 
-      const categoriesAfter = await countAllCategoies();
+      const categoriesAfter = await countAllCategories();
       expect(categoriesAfter).toEqual(categoriesCountBefore);
     });
   });
@@ -45,14 +45,14 @@ describe('adding new category', () => {
     it('Should create new category', async () => {
       await expect(addCategory(artistUserId, sample.names.category[0] + '1')).resolves.not.toThrow();
 
-      const categoriesAfter = await countAllCategoies();
+      const categoriesAfter = await countAllCategories();
       expect(categoriesAfter).toEqual(categoriesCountBefore + 1);
     });
   });
   describe('when trying to add category to client user', () => {
     it('should not create new category', async () => {
       await expect(addCategory(clientUserId, sample.names.category[0])).rejects.toThrow();
-      const categoriesAfter = await countAllCategoies();
+      const categoriesAfter = await countAllCategories();
       expect(categoriesAfter).toEqual(categoriesCountBefore);
     });
   });
@@ -76,17 +76,17 @@ describe('removing a category', () => {
   });
   describe('given not empty catetegory', () => {
     it('should not let remove it', async () => {
-      const countBefore = await countAllCategoies();
+      const countBefore = await countAllCategories();
       await expect(removeCategory(firstCategoryId)).rejects.toThrow();
-      const countAfter = await countAllCategoies();
+      const countAfter = await countAllCategories();
       expect(countAfter).toEqual(countBefore);
     });
   });
   describe('given empty catetegory', () => {
     it('should let remove it', async () => {
-      const countBefore = await countAllCategoies();
+      const countBefore = await countAllCategories();
       await expect(removeCategory(secondCategoryId)).resolves.not.toThrow();
-      const countAfter = await countAllCategoies();
+      const countAfter = await countAllCategories();
       expect(countAfter).toEqual(countBefore - 1);
     });
   });
