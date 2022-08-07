@@ -4,17 +4,11 @@ import { Types } from 'mongoose';
 import { register, registerArtist } from 'src/services/authService';
 import { countAllCategoies } from 'src/services/categoriesService';
 import { addProject } from 'src/services/projectService';
+import { sample } from 'src/utils';
 
 beforeAll(async () => await connectDB());
 afterEach(async () => await clearDB());
 afterAll(async () => await closeDB());
-
-const validPassword = 'dupadupa';
-const artistUserEmail = 'bubu@bubu.bubu';
-const clientUserEmail = 'client@client.client';
-const firstCategoryName = 'first category';
-const secondCategoryName = 'second category';
-const firstProjectName = 'first project';
 
 describe('adding new category', () => {
   let categoriesCountBefore: number;
@@ -23,17 +17,17 @@ describe('adding new category', () => {
 
   beforeEach(async () => {
     const artistUser = await registerArtist({
-      email: artistUserEmail,
-      password: validPassword,
-      passwordConfirm: validPassword
+      email: sample.email.artist,
+      password: sample.pass.valid,
+      passwordConfirm: sample.pass.valid
     });
     artistUserId = artistUser._id;
-    await addCategory(artistUser._id, firstCategoryName);
+    await addCategory(artistUser._id, sample.names.category[0]);
 
     const clientUser = await register({
-      email: clientUserEmail,
-      password: validPassword,
-      passwordConfirm: validPassword
+      email: sample.email.client,
+      password: sample.pass.valid,
+      passwordConfirm: sample.pass.valid
     });
     clientUserId = clientUser._id;
     categoriesCountBefore = await countAllCategoies();
@@ -41,7 +35,7 @@ describe('adding new category', () => {
 
   describe('given already occupied category name for given user', () => {
     it('Should not let create the category ', async () => {
-      await expect(addCategory(artistUserId, firstCategoryName)).rejects.toThrow();
+      await expect(addCategory(artistUserId, sample.names.category[0])).rejects.toThrow();
 
       const categoriesAfter = await countAllCategoies();
       expect(categoriesAfter).toEqual(categoriesCountBefore);
@@ -49,7 +43,7 @@ describe('adding new category', () => {
   });
   describe('given category name not occupied yet by given user', () => {
     it('Should create new category', async () => {
-      await expect(addCategory(artistUserId, firstCategoryName + '1')).resolves.not.toThrow();
+      await expect(addCategory(artistUserId, sample.names.category[0] + '1')).resolves.not.toThrow();
 
       const categoriesAfter = await countAllCategoies();
       expect(categoriesAfter).toEqual(categoriesCountBefore + 1);
@@ -57,7 +51,7 @@ describe('adding new category', () => {
   });
   describe('when trying to add category to client user', () => {
     it('should not create new category', async () => {
-      await expect(addCategory(clientUserId, firstCategoryName)).rejects.toThrow();
+      await expect(addCategory(clientUserId, sample.names.category[0])).rejects.toThrow();
       const categoriesAfter = await countAllCategoies();
       expect(categoriesAfter).toEqual(categoriesCountBefore);
     });
@@ -70,15 +64,15 @@ describe('removing a category', () => {
 
   beforeEach(async () => {
     const artistUser = await registerArtist({
-      email: artistUserEmail,
-      password: validPassword,
-      passwordConfirm: validPassword
+      email: sample.email.artist,
+      password: sample.pass.valid,
+      passwordConfirm: sample.pass.valid
     });
-    const firstCategory = await addCategory(artistUser._id, firstCategoryName);
+    const firstCategory = await addCategory(artistUser._id, sample.names.category[0]);
     firstCategoryId = firstCategory._id;
-    const secondCategory = await addCategory(artistUser._id, secondCategoryName);
+    const secondCategory = await addCategory(artistUser._id, sample.names.category[1]);
     secondCategoryId = secondCategory._id;
-    await addProject(artistUser._id, firstCategory._id, firstProjectName);
+    await addProject(artistUser._id, firstCategory._id, sample.names.project[1]);
   });
   describe('given not empty catetegory', () => {
     it('should not let remove it', async () => {

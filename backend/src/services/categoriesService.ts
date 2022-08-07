@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import { UserDocument, User } from 'src/models/users';
 import { Category, CategoryDocument, ICategory } from 'src/models/categories';
 import { AppError } from 'src/utils';
-import { IStep, Step } from 'src/models';
+import { Step } from 'src/models';
 
 export const countAllCategoies = async () => {
   const count = await Category.find().count();
@@ -32,6 +32,8 @@ export const removeCategory = async (categoryId: Types.ObjectId) => {
   return category.remove();
 };
 
-type CategoryMutation = Partial<Pick<ICategory, "name" | "description" | "color" | "icon">> & { categoryId: Types.ObjectId };
+type CategoryMutation = Partial<Pick<ICategory, 'name' | 'description' | 'color' | 'icon'>> & {
+  categoryId: Types.ObjectId;
+};
 
 export const updateStep = async ({ categoryId, ...data }: CategoryMutation) => Step.findByIdAndUpdate(categoryId, data);
