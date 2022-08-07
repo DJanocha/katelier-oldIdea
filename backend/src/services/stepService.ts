@@ -19,7 +19,8 @@ export const addStep = async ({
   date: Date;
   img?: string;
   description?: string;
-  userId: Types.ObjectId;
+  // userId: Types.ObjectId;
+  userId: string | Types.ObjectId | undefined;
 }) => {
   const project: ProjectDocument | null = await Project.findById(projectId);
   if (!project) {
@@ -33,6 +34,7 @@ export const addStep = async ({
   await innerActivity.save();
   project.steps.push(step._id);
   await project.save();
+  return project;
 };
 
 type StepMutation = Pick<IActivity, 'date' | 'start_time' | 'stop_time' | 'description'> &
@@ -48,7 +50,7 @@ export const getStep = async (stepId: Types.ObjectId) => Step.findById(stepId);
 
 export const getAllSteps = async (id: string) => {
   const projectId = new Types.ObjectId(id);
-  const project: ProjectDocument | null = await Project.findById(projectId).populate('steps');
+  const project: ProjectDocument | null = await Project.findById(projectId);
   if (!project) {
     throw new AppError('could not find the project', 400);
   }

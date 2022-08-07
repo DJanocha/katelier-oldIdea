@@ -47,7 +47,7 @@ export const addProject = async ({
 // const getProjectLastStepImg = (project: ProjectDocumentsWithSteps): ProjectDocumentsWithStepsAndLastStepImg => {
 const getProjectLastStepImg = (project: ProjectDocumentsWithSteps) => {
   if (!project.steps.length) {
-    return project;
+    return project as ProjectDocumentsWithStepsAndLastStepImg;
     //   return { ...project, lastStepImg: undefined };
   }
   const lastStep = getLastItem<StepDocument>(project.steps);
@@ -64,7 +64,6 @@ export const getProjects = async (categoryId: Types.ObjectId) => {
   if (!projects || !projects.length) {
     return [];
   }
-  console.log({ projects });
   return projects.map(getProjectLastStepImg);
 };
 
