@@ -28,20 +28,22 @@ describe('adding new project', () => {
       passwordConfirm: sample.pass.valid
     });
     artistId = artist._id;
-    const firstCategory = await addCategory(artistId, sample.names.category[0]);
-    await addProject(artist._id, firstCategory._id, sample.names.project[0]);
+    const firstCategory = await addCategory({ userId: artistId, newCategoryName: sample.names.category[0] });
+    await addProject({ userId: artist._id, categoryId: firstCategory._id, newProjectName: sample.names.project[0] });
 
     firstCategoryId = firstCategory._id;
-    const secondCategory = await addCategory(artist._id, sample.names.category[1]);
+    const secondCategory = await addCategory({ userId: artist._id, newCategoryName: sample.names.category[1] });
     secondCategoryId = secondCategory._id;
-    await addProject(artistId, firstCategoryId, sample.names.project[1]);
+    await addProject({ userId: artistId, categoryId: firstCategoryId, newProjectName: sample.names.project[1] });
     projectsCountBefore = await countAllProjects();
   });
 
   describe('given project name', () => {
     describe('given already occupied project name for given category', () => {
       it('Should NOT let create new project', async () => {
-        await expect(addProject(artistId, firstCategoryId, sample.names.project[0])).rejects.toThrow();
+        await expect(
+          addProject({ userId: artistId, categoryId: firstCategoryId, newProjectName: sample.names.project[0] })
+        ).rejects.toThrow();
 
         const projectsAfter = await countAllProjects();
         expect(projectsAfter).toEqual(projectsCountBefore);
@@ -49,14 +51,18 @@ describe('adding new project', () => {
     });
     describe('given project name NOT occupied yet by given category ', () => {
       it('Should create new project', async () => {
-        await expect(addProject(artistId, secondCategoryId, sample.names.project[0])).resolves.not.toThrow();
+        await expect(
+          addProject({ userId: artistId, categoryId: secondCategoryId, newProjectName: sample.names.project[0] })
+        ).resolves.not.toThrow();
         const projectsAfter = await countAllProjects();
         expect(projectsAfter).toEqual(projectsCountBefore + 1);
       });
     });
     describe('given project name used by OTHER category', () => {
       it('Should create new project', async () => {
-        await expect(addProject(artistId, secondCategoryId, sample.names.project[0])).resolves.not.toThrow();
+        await expect(
+          addProject({ userId: artistId, categoryId: secondCategoryId, newProjectName: sample.names.project[0] })
+        ).resolves.not.toThrow();
         const projectsAfter = await countAllProjects();
         expect(projectsAfter).toEqual(projectsCountBefore + 1);
       });
@@ -75,12 +81,20 @@ describe('removing a project', () => {
       password: sample.pass.valid,
       passwordConfirm: sample.pass.valid
     });
-    const firstCategory = await addCategory(artist._id, sample.names.category[0]);
+    const firstCategory = await addCategory({ userId: artist._id, newCategoryName: sample.names.category[0] });
     firstCategoryId = firstCategory._id;
-    await addCategory(artist._id, sample.names.category[1]);
-    const firstProject = await addProject(artist._id, firstCategory._id, sample.names.project[0]);
+    await addCategory({ userId: artist._id, newCategoryName: sample.names.category[1] });
+    const firstProject = await addProject({
+      userId: artist._id,
+      categoryId: firstCategory._id,
+      newProjectName: sample.names.project[0]
+    });
     firstProjectId = firstProject._id;
-    const secondProject = await addProject(artist._id, firstCategory._id, sample.names.project[1]);
+    const secondProject = await addProject({
+      userId: artist._id,
+      categoryId: firstCategory._id,
+      newProjectName: sample.names.project[1]
+    });
     secondProjectId = secondProject._id;
 
     await addStep({
@@ -126,10 +140,18 @@ describe('getting the project', () => {
       passwordConfirm: sample.pass.valid
     });
     const artistId = artist._id;
-    const firstCategory = await addCategory(artistId, sample.names.category[0]);
+    const firstCategory = await addCategory({ userId: artistId, newCategoryName: sample.names.category[0] });
     const firstCategoryId = firstCategory._id;
-    const first = await addProject(artistId, firstCategoryId, sample.names.project[0]);
-    const second = await addProject(artistId, firstCategoryId, sample.names.project[1]);
+    const first = await addProject({
+      userId: artistId,
+      categoryId: firstCategoryId,
+      newProjectName: sample.names.project[0]
+    });
+    const second = await addProject({
+      userId: artistId,
+      categoryId: firstCategoryId,
+      newProjectName: sample.names.project[1]
+    });
     firstProjectId = first._id;
     secondProjectId = second._id;
     await addStep({

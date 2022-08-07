@@ -30,7 +30,7 @@ export interface UserDocument extends IUser, Document {
   categories: Types.Array<CategoryModel['_id']>;
   createResetPasswordToken(): Promise<string>;
   removeResetPasswordToken(): Promise<void>;
-  addCategory(name: string): Promise<CategoryDocument>;
+  addCategory( name: string ): Promise<CategoryDocument>;
 }
 export interface UserDocumentWithCategories extends UserDocument {
   // if line below creates errors, try to make it an array of ICategory instead of categoryModel (not to extend Model, Document or whatever)

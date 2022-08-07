@@ -21,7 +21,7 @@ export const getAllProjects = async (categoryId: Types.ObjectId) => {
   return category.projects;
 };
 
-export const addProject = async (userId: Types.ObjectId, categoryId: Types.ObjectId, newProjectName: string) => {
+export const addProject = async ({userId, categoryId, newProjectName}:{ userId: Types.ObjectId, categoryId: Types.ObjectId, newProjectName: string }) => {
   const category: CategoryDocument | null = await Category.findById<CategoryDocument>(categoryId);
   const user: UserDocument | null = await User.findById<UserDocument>(userId);
 

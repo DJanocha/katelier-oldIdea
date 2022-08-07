@@ -4,14 +4,14 @@ import { Category, CategoryDocument, ICategory } from 'src/models/categories';
 import { AppError } from 'src/utils';
 import { Step } from 'src/models';
 
-export const countAllCategoies = async () => {
+export const countAllCategories = async () => {
   const count = await Category.find().count();
   return count;
 };
 
 export const getAllCategories = async () => Category.find({});
 
-export const addCategory = async (userId: Types.ObjectId, newCategoryName: string) => {
+export const addCategory = async ({ userId, newCategoryName }: { userId: Types.ObjectId; newCategoryName: string }) => {
   const user: UserDocument | null = await User.findById<UserDocument>(userId);
   if (!user || user.role !== 'artist') {
     throw new AppError('Incorrect user', 400);

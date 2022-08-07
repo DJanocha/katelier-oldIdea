@@ -47,7 +47,7 @@ CategorySchema.methods.addProject = async function (this: CategoryDocument, newP
   await newProject.save();
   this.projects.push(newProject._id);
   await this.save();
-  return newProject
+  return newProject;
 };
 
 export const Category = model<CategoryDocument>('Category', CategorySchema);
