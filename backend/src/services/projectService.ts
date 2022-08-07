@@ -44,20 +44,27 @@ export const addProject = async ({
   return category.addProject(newProjectData);
 };
 
-const getProjectLastStepImg = (project: ProjectDocumentsWithSteps): ProjectDocumentsWithStepsAndLastStepImg=>{
+// const getProjectLastStepImg = (project: ProjectDocumentsWithSteps): ProjectDocumentsWithStepsAndLastStepImg => {
+const getProjectLastStepImg = (project: ProjectDocumentsWithSteps) => {
+  if (!project.steps.length) {
+    return project;
+    //   return { ...project, lastStepImg: undefined };
+  }
   const lastStep = getLastItem<StepDocument>(project.steps);
   const lastStepImg = lastStep?.img;
-  return { ...project, lastStepImg } as ProjectDocumentsWithStepsAndLastStepImg;
-}
+  // return { ...project, lastStepImg } as ProjectDocumentsWithStepsAndLastStepImg;
+  return { ...project, lastStepImg };
+};
 
 export const getProjects = async (categoryId: Types.ObjectId) => {
-  const projects: ProjectDocumentsWithSteps[] = await Project.find({category: categoryId}).populate({
+  const projects: ProjectDocumentsWithSteps[] = await Project.find({ category: categoryId }).populate({
     path: 'steps',
     select: '-_id img'
   });
-  if (!projects || !projects.length ) {
+  if (!projects || !projects.length) {
     return [];
   }
+  console.log({ projects });
   return projects.map(getProjectLastStepImg);
 };
 

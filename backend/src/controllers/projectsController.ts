@@ -17,7 +17,7 @@ const createOne: RequestHandler = catchAsync(async (req, res, next) => {
 
 const getAll: RequestHandler = catchAsync(async (req, res, next) => {
   const categoryId = new Types.ObjectId(req.params.categoryId);
-  const elements = await service.getAllProjects(categoryId );
+  const elements = await service.getProjects(categoryId );
   return res.status(200).json({ ok: true, data: elements });
 });
 
