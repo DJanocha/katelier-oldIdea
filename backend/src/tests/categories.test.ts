@@ -77,7 +77,7 @@ describe('removing a category', () => {
     await addProject({
       userId: artistUser._id,
       categoryId: firstCategory._id,
-      newProjectName: sample.names.project[1]
+      newProjectData: {name :sample.names.project[1]}
     });
   });
   describe('given not empty catetegory', () => {

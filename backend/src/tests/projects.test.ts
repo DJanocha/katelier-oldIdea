@@ -29,12 +29,12 @@ describe('adding new project', () => {
     });
     artistId = artist._id;
     const firstCategory = await addCategory({ userId: artistId, newCategoryName: sample.names.category[0] });
-    await addProject({ userId: artist._id, categoryId: firstCategory._id, newProjectName: sample.names.project[0] });
+    await addProject({ userId: artist._id, categoryId: firstCategory._id, newProjectData: {name :sample.names.project[0] }});
 
     firstCategoryId = firstCategory._id;
     const secondCategory = await addCategory({ userId: artist._id, newCategoryName: sample.names.category[1] });
     secondCategoryId = secondCategory._id;
-    await addProject({ userId: artistId, categoryId: firstCategoryId, newProjectName: sample.names.project[1] });
+    await addProject({ userId: artistId, categoryId: firstCategoryId, newProjectData: {name :sample.names.project[1] }});
     projectsCountBefore = await countAllProjects();
   });
 
@@ -42,7 +42,7 @@ describe('adding new project', () => {
     describe('given already occupied project name for given category', () => {
       it('Should NOT let create new project', async () => {
         await expect(
-          addProject({ userId: artistId, categoryId: firstCategoryId, newProjectName: sample.names.project[0] })
+          addProject({ userId: artistId, categoryId: firstCategoryId, newProjectData: {name :sample.names.project[0] }})
         ).rejects.toThrow();
 
         const projectsAfter = await countAllProjects();
@@ -52,7 +52,7 @@ describe('adding new project', () => {
     describe('given project name NOT occupied yet by given category ', () => {
       it('Should create new project', async () => {
         await expect(
-          addProject({ userId: artistId, categoryId: secondCategoryId, newProjectName: sample.names.project[0] })
+          addProject({ userId: artistId, categoryId: secondCategoryId, newProjectData: {name :sample.names.project[0] }})
         ).resolves.not.toThrow();
         const projectsAfter = await countAllProjects();
         expect(projectsAfter).toEqual(projectsCountBefore + 1);
@@ -61,7 +61,7 @@ describe('adding new project', () => {
     describe('given project name used by OTHER category', () => {
       it('Should create new project', async () => {
         await expect(
-          addProject({ userId: artistId, categoryId: secondCategoryId, newProjectName: sample.names.project[0] })
+          addProject({ userId: artistId, categoryId: secondCategoryId, newProjectData: {name :sample.names.project[0] }})
         ).resolves.not.toThrow();
         const projectsAfter = await countAllProjects();
         expect(projectsAfter).toEqual(projectsCountBefore + 1);
@@ -87,13 +87,13 @@ describe('removing a project', () => {
     const firstProject = await addProject({
       userId: artist._id,
       categoryId: firstCategory._id,
-      newProjectName: sample.names.project[0]
+      newProjectData: {name :sample.names.project[0]}
     });
     firstProjectId = firstProject._id;
     const secondProject = await addProject({
       userId: artist._id,
       categoryId: firstCategory._id,
-      newProjectName: sample.names.project[1]
+      newProjectData: {name :sample.names.project[1]}
     });
     secondProjectId = secondProject._id;
 
@@ -145,12 +145,12 @@ describe('getting the project', () => {
     const first = await addProject({
       userId: artistId,
       categoryId: firstCategoryId,
-      newProjectName: sample.names.project[0]
+      newProjectData: {name :sample.names.project[0]}
     });
     const second = await addProject({
       userId: artistId,
       categoryId: firstCategoryId,
-      newProjectName: sample.names.project[1]
+      newProjectData: {name :sample.names.project[1]}
     });
     firstProjectId = first._id;
     secondProjectId = second._id;

@@ -21,7 +21,19 @@ export const getAllProjects = async (categoryId: Types.ObjectId) => {
   return category.projects;
 };
 
-export const addProject = async ({userId, categoryId, newProjectName}:{ userId: Types.ObjectId, categoryId: Types.ObjectId, newProjectName: string }) => {
+export const addProject = async ({
+  userId,
+  categoryId,
+  newProjectData
+}: {
+  userId: Types.ObjectId | undefined;
+  categoryId: Types.ObjectId;
+  newProjectData: Partial<Pick<IProject, 'name' | 'description'>>;
+}) => {
+  if (!userId) {
+    throw new AppError('could not find the category or user', 400);
+  }
+
   const category: CategoryDocument | null = await Category.findById<CategoryDocument>(categoryId);
   const user: UserDocument | null = await User.findById<UserDocument>(userId);
 
@@ -29,7 +41,7 @@ export const addProject = async ({userId, categoryId, newProjectName}:{ userId: 
     throw new AppError('could not find the category or user', 400);
   }
 
-  return category.addProject(newProjectName);
+  return category.addProject(newProjectData);
 };
 
 export const getProject = async (projectId: Types.ObjectId) => {

@@ -1,6 +1,6 @@
 import { Schema, model, Types, Document } from 'mongoose';
 import { AppError } from 'src/utils';
-import { Project, ProjectDocument, ProjectModel } from './projects';
+import { IProject, Project, ProjectDocument, ProjectModel } from './projects';
 export interface ICategory {
   name: string;
   description: string;
@@ -11,7 +11,7 @@ export interface ICategory {
 
 export interface CategoryDocument extends ICategory, Document {
   projects: Types.Array<ProjectModel['_id']>;
-  addProject(newProjectName: string): Promise<ProjectDocument>;
+  addProject(newProjectData: Partial<Pick<IProject, "name" | "description">>): Promise<ProjectDocument>;
 }
 export interface CategoryDocumentWithProjects extends CategoryDocument {
   projects: Types.Array<ProjectModel>;
@@ -37,13 +37,13 @@ const CategorySchema = new Schema<CategoryDocument, CategoryModel>({
   description: String
 });
 
-CategorySchema.methods.addProject = async function (this: CategoryDocument, newProjectName: string) {
+CategorySchema.methods.addProject = async function (this: CategoryDocument, newProjectData: Partial<Pick<IProject, "name" | "description">>) {
   const { projects } = await this.populate('projects');
-  const projectNameOccupied = projects.map((p) => p.name).includes(newProjectName);
+  const projectNameOccupied = projects.map((p) => p.name).includes(newProjectData.name);
   if (projectNameOccupied) {
     throw new AppError('Category already contains a project with given name', 400);
   }
-  const newProject = new Project({ name: newProjectName, category: this._id });
+  const newProject = new Project({ category: this._id, ...newProjectData });
   await newProject.save();
   this.projects.push(newProject._id);
   await this.save();
