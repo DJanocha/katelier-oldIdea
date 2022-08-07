@@ -4,6 +4,7 @@ import {
   PasswordVariant,
   propertiesBlockedFromBeingModified,
   register,
+  registerArtist,
   updateUserData,
   updateUserPassword,
   UpdateUserPasswordInput
@@ -15,6 +16,8 @@ const validPassword = 'dupadupa';
 const invalidPassword = 'dupadupaa';
 const validEmail = 'emailfortesttt@test.test';
 const takenEmail = 'emailfortest222222@test.test';
+const artistEmail = 'bubu@bubu.bubu';
+const artistEmail2 = 'bubu2@bubu.bubu';
 const invalidEmail = tooShortPassword;
 
 const userDataToUpdate = {
@@ -35,9 +38,19 @@ describe('register', () => {
   let usersCountBefore: number;
   beforeEach(async () => {
     await register({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
-    usersCountBefore = await countUsers()
+    await registerArtist({ email: artistEmail, password: validPassword, passwordConfirm: validPassword });
+    usersCountBefore = await countUsers();
   });
   afterEach(async () => await clearDB());
+
+  describe('when artist already registered', () => {
+    it('Does not let register another artist', async () => {
+      await expect(
+        registerArtist({ email: artistEmail2, password: validPassword, passwordConfirm: validPassword })
+      ).rejects.toThrow();
+      await expect(countUsers()).resolves.toEqual(usersCountBefore);
+    });
+  });
 
   describe('given not matching passwords ', () => {
     it('Does not let user register ', async () => {
@@ -128,7 +141,7 @@ describe('update password', () => {
 });
 describe('update me', () => {
   beforeEach(async () => {
-   await register({ email: validEmail, password: validPassword, passwordConfirm: validPassword });
+    await register({ email: validEmail, password: validPassword, passwordConfirm: validPassword });
   });
   it('Should not let to update password in update me route', async () => {
     await expect(getUserByEmail(validEmail)).resolves.not.toThrow();

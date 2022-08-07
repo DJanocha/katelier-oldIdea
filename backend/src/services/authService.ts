@@ -2,7 +2,7 @@ import { User } from 'src/models';
 import { AppError } from 'src/utils';
 import bcrypt from 'bcryptjs';
 import { hashTheResetToken } from 'src/utils/hashTheResetToken';
-import { UserDocument } from 'src/models/users';
+import { Role, UserDocument } from 'src/models/users';
 
 type RegisterInput = {
   email: string;
@@ -18,8 +18,18 @@ export interface UpdateUserPasswordInput extends Record<PasswordVariant, string>
 export const propertiesBlockedFromBeingModified = ['role'];
 
 export const register = async ({ email, password, passwordConfirm }: RegisterInput) => {
-  const newUser = new User({ email, password, passwordConfirm });
-  return newUser.save();
+  const newUser = new User({ email, password, passwordConfirm, role: 'client' });
+  await newUser.save();
+  return newUser as UserDocument;
+};
+export const registerArtist = async ({ email, password, passwordConfirm }: RegisterInput) => {
+  const existingArtist = await User.findOne({ role: 'artist' });
+  if (existingArtist) {
+    throw new AppError('Artist already registered', 400);
+  }
+  const newUser = new User({ email, password, passwordConfirm, role: 'artist' });
+  await newUser.save();
+  return newUser as UserDocument;
 };
 
 export const loginAs = async ({ email, password: pass }: { email: string; password: string }) => {
