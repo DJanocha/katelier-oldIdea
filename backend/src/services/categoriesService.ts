@@ -39,4 +39,7 @@ type CategoryMutation = Partial<Pick<ICategory, 'name' | 'description' | 'color'
   categoryId: Types.ObjectId;
 };
 
-export const updateStep = async ({ categoryId, ...data }: CategoryMutation) => Step.findByIdAndUpdate(categoryId, data);
+export const updateCategory = async ({ categoryId, ...data }: CategoryMutation) =>
+  Category.findByIdAndUpdate(categoryId, data);
+
+export const getCategory = async (id: string) => Category.findById(new Types.ObjectId(id));
