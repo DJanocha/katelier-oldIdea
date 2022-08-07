@@ -11,7 +11,7 @@ export const countAllCategories = async () => {
 
 export const getAllCategories = async () => Category.find({});
 
-export const addCategory = async (userId: Types.ObjectId, newCategoryName: string) => {
+export const addCategory = async ({ userId, newCategoryName }: { userId: Types.ObjectId; newCategoryName: string }) => {
   const user: UserDocument | null = await User.findById<UserDocument>(userId);
   if (!user || user.role !== 'artist') {
     throw new AppError('Incorrect user', 400);

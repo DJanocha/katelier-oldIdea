@@ -140,7 +140,7 @@ describe('update me', () => {
     await register({ email: sample.email.client, password: sample.pass.valid, passwordConfirm: sample.pass.valid });
   });
   it('Should not let to update password in update me route', async () => {
-    await expect(getUserByEmail(sample.email.client)).resolves.not.toThrow();
+    await expect(getUserByEmail({email: sample.email.client })).resolves.not.toThrow();
     const dataVariants: Record<string, string>[] = [
       { newPassword: sample.pass.valid },
       { newPasswordConfirm: sample.pass.valid },
@@ -167,7 +167,7 @@ describe('update me', () => {
     });
   });
   it('Should not update values that are not allowed', async () => {
-    const user = (await getUserByEmail(sample.email.client)) as Record<string, any>;
+    const user = (await getUserByEmail({email: sample.email.client })) as Record<string, any>;
     expect(user).not.toBeNull();
     const data = getUserDataToUpdate() as Record<string, any>;
     const updatedUser = (await updateUserData({ email: sample.email.client, data })) as Record<string, any>;
