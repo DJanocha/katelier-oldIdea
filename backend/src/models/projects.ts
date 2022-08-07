@@ -23,6 +23,9 @@ type NewStepData = {
 export interface ProjectDocumentsWithSteps extends ProjectDocument {
   steps: Types.Array<StepModel>;
 }
+export interface ProjectDocumentsWithStepsAndLastStepImg extends ProjectDocumentsWithSteps {
+  lastStepImg: string | undefined;
+}
 
 /*Now it can be as a type. If you want to add some 
 static functions, you better change

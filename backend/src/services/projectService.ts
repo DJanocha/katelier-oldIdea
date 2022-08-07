@@ -1,8 +1,9 @@
 import { Types } from "mongoose";
-import {IProject, Project, ProjectDocument } from 'src/models/projects';
+import {IProject, Project, ProjectDocument, ProjectDocumentsWithSteps, ProjectDocumentsWithStepsAndLastStepImg } from 'src/models/projects';
 import { Category, CategoryDocument } from "src/models/categories";
 import { User, UserDocument } from "src/models/users";
-import { AppError } from "src/utils";
+import { AppError, getLastItem } from "src/utils";
+import { StepDocument } from 'src/models/steps';
 
 export const countAllProjects = async () => Project.find().count()
 
@@ -26,7 +27,16 @@ export const addProject = async (userId: Types.ObjectId, categoryId: Types.Objec
   return category.addProject(newProjectName);
 };
 
-export const getProject = async(projectId: Types.ObjectId)=> Project.findById(projectId);
+export const getProject = async (projectId: Types.ObjectId) => {
+  const project: ProjectDocumentsWithSteps | null = await Project.findById(projectId).populate({
+    path: 'steps',
+    select: '-_id img'
+  });
+  if(!project || !project.steps || !project.steps.length){ return null}
+  const lastStep =getLastItem<StepDocument>( project.steps )
+  const lastStepImg = lastStep.img
+  return { ...project, lastStepImg } as ProjectDocumentsWithStepsAndLastStepImg;
+};
 
 type ProjectMutation = Partial<Pick<IProject, "name" | "description" | "client_info">> & { projectId : Types.ObjectId}
 

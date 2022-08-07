@@ -6,3 +6,4 @@ export { isDateValid } from 'src/utils/isDateValid';
 export { getUri } from 'src/utils/getDatabaseUri';
 export { name } from 'src/utils/modelsName';
 export { isResetTokenOutdated } from 'src/utils/authUtils';
+export * from 'src/utils/arrayUtils'

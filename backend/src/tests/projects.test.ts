@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { connectDB, clearDB, closeDB } from './db';
-import { addProject, removeProject } from 'src/services/projectService';
+import { addProject, getProject, removeProject } from 'src/services/projectService';
 import { register, registerArtist } from 'src/services/authService';
 import { addCategory } from 'src/services/categoriesService';
 import { countAllProjects } from 'src/services/projectService';
@@ -110,6 +110,48 @@ describe('removing a project', () => {
       await expect(removeProject(secondProjectId)).resolves.not.toThrow();
       const countAfter = await countAllProjects();
       expect(countAfter).toEqual(countBefore - 1);
+    });
+  });
+});
+
+describe('getting the project', () => {
+  const img = 'example image path';
+  let firstProjectId: Types.ObjectId;
+  let secondProjectId: Types.ObjectId;
+  const date = new Date();
+  const start_time = new Date();
+  start_time.setHours(12, 20);
+  const stop_time = new Date();
+  stop_time.setHours(14, 20);
+  beforeEach(async () => {
+    const artist = await registerArtist({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
+    const artistId = artist._id;
+    const firstCategory = await addCategory(artistId, firstCategoryName);
+    const firstCategoryId = firstCategory._id;
+    const first = await addProject(artistId, firstCategoryId, firstProjectName);
+    const second = await addProject(artistId, firstCategoryId, secondProjectName);
+    firstProjectId = first._id;
+    secondProjectId = second._id;
+    await addStep({
+      categoryId: firstCategoryId,
+      projectId: firstProjectId,
+      date,
+      start_time,
+      stop_time,
+      userId: artistId,
+      img
+    });
+  });
+  describe('when at least 1 step added', () => {
+    it('should get project with proper last_step_image', async () => {
+  const projectWithSteps = await getProject(firstProjectId);
+  expect(projectWithSteps?.lastStepImg).toEqual(img);
+});
+});
+describe('when no steps added', () => {
+  it('should get project with empty last_step_image', async () => {
+      const projectWithoutSteps = await getProject(secondProjectId);
+      expect(projectWithoutSteps?.lastStepImg).toEqual(undefined);
     });
   });
 });
