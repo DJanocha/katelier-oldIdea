@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import { connectDB, clearDB, closeDB } from './db';
 import { addProject, getProject, removeProject } from 'src/services/projectService';
-import { register, registerArtist } from 'src/services/authService';
+import { registerArtist } from 'src/services/authService';
 import { addCategory } from 'src/services/categoriesService';
 import { countAllProjects } from 'src/services/projectService';
 import { addStep } from 'src/services/stepService';
