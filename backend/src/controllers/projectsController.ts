@@ -4,7 +4,7 @@ import { catchAsync, generateHandlers } from 'src/utils';
 import * as service from 'src/services/projectService';
 import { Types } from 'mongoose';
 
-const { deleteOne, getAll, getOne, updateOne } = generateHandlers({
+const { deleteOne, getOne, updateOne } = generateHandlers({
   model: Project
 });
 
@@ -13,6 +13,12 @@ const createOne: RequestHandler = catchAsync(async (req, res, next) => {
   const categoryId = new Types.ObjectId(params.categoryId);
   const newElement = await service.addProject({ userId: user?._id, categoryId, newProjectData: body });
   return res.status(200).json({ ok: true, data: newElement });
+});
+
+const getAll: RequestHandler = catchAsync(async (req, res, next) => {
+  const categoryId = new Types.ObjectId(req.params.categoryId);
+  const elements = await service.getAllProjects(categoryId );
+  return res.status(200).json({ ok: true, data: elements });
 });
 
 export { createOne, deleteOne, getAll, getOne, updateOne };
