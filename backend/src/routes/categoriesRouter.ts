@@ -1,5 +1,5 @@
 import express from 'express';
-import { createOne, deleteOne, getAll, getOne, updateOne } from 'src/controllers/categoriesController';
+import { addCategory, createOne, deleteOne, getAll, getOne, updateOne } from 'src/controllers/categoriesController';
 import { requireArtist, requireLogin } from 'src/controllers/auth';
 import { Project, Category, Step } from 'src/models';
 import { AppError, catchAsync, stopParentFromHavingInvalidChildrens } from 'src/utils/';
@@ -13,6 +13,8 @@ const router = express.Router();
 router.use(requireLogin, requireArtist);
 
 router.route('/').get(getAll).post(restrictInvalidProjects, createOne);
+
+router.route('/new').post(addCategory);
 
 router.route('/:id').get(getOne).delete(deleteOne).patch(restrictInvalidProjects, updateOne);
 
