@@ -144,12 +144,12 @@ describe('getting the project', () => {
   });
   describe('when at least 1 step added', () => {
     it('should get project with proper last_step_image', async () => {
-  const projectWithSteps = await getProject(firstProjectId);
-  expect(projectWithSteps?.lastStepImg).toEqual(img);
-});
-});
-describe('when no steps added', () => {
-  it('should get project with empty last_step_image', async () => {
+      const projectWithSteps = await getProject(firstProjectId);
+      expect(projectWithSteps?.lastStepImg).toEqual(img);
+    });
+  });
+  describe('when no steps added', () => {
+    it('should get project with empty last_step_image', async () => {
       const projectWithoutSteps = await getProject(secondProjectId);
       expect(projectWithoutSteps?.lastStepImg).toEqual(undefined);
     });
