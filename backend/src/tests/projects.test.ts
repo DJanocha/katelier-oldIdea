@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { connectDB, clearDB, closeDB } from './db';
-import { addProject, getProject, removeProject } from 'src/services/projectService';
+import { addProject, getProjects, removeProject } from 'src/services/projectService';
 import { registerArtist } from 'src/services/authService';
 import { addCategory } from 'src/services/categoriesService';
 import { countAllProjects } from 'src/services/projectService';
@@ -128,6 +128,7 @@ describe('getting the project', () => {
   const img = 'example image path';
   let firstProjectId: Types.ObjectId;
   let secondProjectId: Types.ObjectId;
+  let firstCategoryId : Types.ObjectId;
   const date = new Date();
   const start_time = new Date();
   start_time.setHours(12, 20);
@@ -141,7 +142,7 @@ describe('getting the project', () => {
     });
     const artistId = artist._id;
     const firstCategory = await addCategory({ userId: artistId, newCategoryName: sample.names.category[0] });
-    const firstCategoryId = firstCategory._id;
+    firstCategoryId = firstCategory._id;
     const first = await addProject({
       userId: artistId,
       categoryId: firstCategoryId,
@@ -166,14 +167,14 @@ describe('getting the project', () => {
   });
   describe('when at least 1 step added', () => {
     it('should get project with proper last_step_image', async () => {
-      const projectWithSteps = await getProject(firstProjectId);
-      expect(projectWithSteps?.lastStepImg).toEqual(img);
+      const projectWithSteps = await getProjects(firstCategoryId);
+      expect(projectWithSteps?.[0]?.lastStepImg).toEqual(img);
     });
   });
   describe('when no steps added', () => {
     it('should get project with empty last_step_image', async () => {
-      const projectWithoutSteps = await getProject(secondProjectId);
-      expect(projectWithoutSteps?.lastStepImg).toEqual(undefined);
+      const projectWithoutSteps = await getProjects(firstCategoryId);
+      expect(projectWithoutSteps?.[1]?.lastStepImg).toEqual(undefined);
     });
   });
 });

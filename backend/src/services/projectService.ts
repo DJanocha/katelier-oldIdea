@@ -44,17 +44,21 @@ export const addProject = async ({
   return category.addProject(newProjectData);
 };
 
-export const getProject = async (projectId: Types.ObjectId) => {
-  const project: ProjectDocumentsWithSteps | null = await Project.findById(projectId).populate({
+const getProjectLastStepImg = (project: ProjectDocumentsWithSteps): ProjectDocumentsWithStepsAndLastStepImg=>{
+  const lastStep = getLastItem<StepDocument>(project.steps);
+  const lastStepImg = lastStep?.img;
+  return { ...project, lastStepImg } as ProjectDocumentsWithStepsAndLastStepImg;
+}
+
+export const getProjects = async (categoryId: Types.ObjectId) => {
+  const projects: ProjectDocumentsWithSteps[] = await Project.find({category: categoryId}).populate({
     path: 'steps',
     select: '-_id img'
   });
-  if (!project || !project.steps || !project.steps.length) {
-    return null;
+  if (!projects || !projects.length ) {
+    return [];
   }
-  const lastStep = getLastItem<StepDocument>(project.steps);
-  const lastStepImg = lastStep.img;
-  return { ...project, lastStepImg } as ProjectDocumentsWithStepsAndLastStepImg;
+  return projects.map(getProjectLastStepImg);
 };
 
 type ProjectMutation = Partial<Pick<IProject, 'name' | 'description' | 'client_info'>> & { projectId: Types.ObjectId };
