@@ -9,7 +9,7 @@ export const countAllCategories = async () => {
   return count;
 };
 
-export const getAllCategories = async () => Category.find({});
+export const getUsersCategories = async (userId: Types.ObjectId) => User.findById(userId).populate('categories');
 
 export const addCategory = async ({ userId, newCategoryName }: { userId: Types.ObjectId; newCategoryName: string }) => {
   const user: UserDocument | null = await User.findById<UserDocument>(userId);
