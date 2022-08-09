@@ -39,10 +39,13 @@ export const addStep = async ({
 
 type StepMutation = Pick<IActivity, 'date' | 'start_time' | 'stop_time' | 'description'> &
   Pick<IStep, 'img' | 'used_materials'> & {
-    stepId: Types.ObjectId;
+    stepId: string,
+    categoryId: string,
+    projectId: string
   };
 
-export const updateStep = async ({ stepId, ...data }: StepMutation) => Step.findByIdAndUpdate(stepId, data);
+export const updateStep = async ({ stepId,categoryId, projectId, ...data }: StepMutation) => Step.findOneAndUpdate({ _id:new Types.ObjectId(stepId),
+   category: new Types.ObjectId(categoryId), project: new Types.ObjectId( projectId ) }, data);
 
 export const deleteStep = async (stepId: Types.ObjectId) => Step.findByIdAndDelete(stepId);
 
