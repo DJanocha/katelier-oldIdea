@@ -44,15 +44,46 @@ type StepMutation = Pick<IActivity, 'date' | 'start_time' | 'stop_time' | 'descr
     projectId: string
   };
 
-export const updateStep = async ({ stepId,categoryId, projectId, ...data }: StepMutation) => Step.findOneAndUpdate({ _id:new Types.ObjectId(stepId),
-   category: new Types.ObjectId(categoryId), project: new Types.ObjectId( projectId ) }, data);
+export const updateStep = async ({ stepId, categoryId, projectId, ...data }: StepMutation) =>
+  Step.findOneAndUpdate(
+    {
+      _id: new Types.ObjectId(stepId),
+      category: new Types.ObjectId(categoryId),
+      project: new Types.ObjectId(projectId)
+    },
+    data
+  );
 
-export const deleteStep = async (stepId: Types.ObjectId) => Step.findByIdAndDelete(stepId);
+// export const deleteStep = async (stepId: Types.ObjectId) => Step.findByIdAndDelete(stepId);
+export const deleteStep = async ({
+  categoryId,
+  projectId,
+  stepId
+}: {
+  stepId: string;
+  categoryId: string;
+  projectId: string;
+}) => {
+  await Project.findOneAndUpdate(
+    { _id: new Types.ObjectId(projectId) },
+    { $pull: { steps: new Types.ObjectId(stepId) } }
+  );
+  await Step.findByIdAndDelete(stepId);
+};
 
-export const getStep = async ({stepId, projectId, categoryId}:{ stepId: string, categoryId: string, projectId: string }) => Step.findOne({
-  category: new Types.ObjectId( categoryId ),
-  project: new Types.ObjectId( projectId ),
-  _id: new Types.ObjectId( stepId ),
+export const getStep = async ({
+  stepId,
+  projectId,
+  categoryId
+}: {
+  stepId: string;
+  categoryId: string;
+  projectId: string;
+}) =>
+  Step.findOne({
+    category: new Types.ObjectId(categoryId),
+    project: new Types.ObjectId(projectId),
+    _id: new Types.ObjectId(stepId)
 });
 
 export const getAllSteps = async (id: string) => {

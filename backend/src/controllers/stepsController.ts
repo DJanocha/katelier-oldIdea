@@ -2,9 +2,7 @@ import { Step } from 'src/models';
 import { catchAsync, generateHandlers } from 'src/utils';
 import * as service from 'src/services/stepService';
 import { RequestHandler } from 'express';
-const { deleteOne } = generateHandlers({
-  model: Step
-});
+import { stepsRouter } from 'src/routes/stepsRouter';
 
 const getAll: RequestHandler = catchAsync(async (req, res, next) => {
   const allElements = await service.getAllSteps(req.params.projectId);
@@ -37,11 +35,21 @@ const getOne: RequestHandler = catchAsync(async (req, res, next) => {
 
 const updateOne: RequestHandler = catchAsync(async (req, res, next) => {
   const { categoryId, id, projectId } = req.params;
-  const projectWithNewStep = await service.updateStep({stepId: id, categoryId, projectId, ...req.body})
+  const projectWithNewStep = await service.updateStep({ stepId: id, categoryId, projectId, ...req.body });
 
   return res.status(200).json({
     ok: true,
     data: projectWithNewStep
+  });
+});
+
+const deleteOne: RequestHandler = catchAsync(async (req, res, next) => {
+  const { categoryId, id, projectId } = req.params;
+  const deletedProject = await service.deleteStep({ stepId: id, categoryId, projectId });
+
+  return res.status(200).json({
+    ok: true,
+    data: deletedProject
   });
 });
 export { getAll, createOne, getOne, updateOne, deleteOne };
