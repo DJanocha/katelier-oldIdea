@@ -46,7 +46,11 @@ export const updateStep = async ({ stepId, ...data }: StepMutation) => Step.find
 
 export const deleteStep = async (stepId: Types.ObjectId) => Step.findByIdAndDelete(stepId);
 
-export const getStep = async (stepId: Types.ObjectId) => Step.findById(stepId);
+export const getStep = async ({stepId, projectId, categoryId}:{ stepId: string, categoryId: string, projectId: string }) => Step.findOne({
+  category: new Types.ObjectId( categoryId ),
+  project: new Types.ObjectId( projectId ),
+  _id: new Types.ObjectId( stepId ),
+});
 
 export const getAllSteps = async (id: string) => {
   const projectId = new Types.ObjectId(id);
