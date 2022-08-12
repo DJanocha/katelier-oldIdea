@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { createOne, deleteOne, getAll, getOne, updateOne } from 'src/controllers/activitiesController';
+import { createOne, deleteOne, getAll, getOne, updateOne, getAllEvents, getAllTemplates } from 'src/controllers/activitiesController';
 import { requireArtist, requireLogin } from 'src/controllers/auth';
 
 const router = express.Router();
