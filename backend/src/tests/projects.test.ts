@@ -109,7 +109,7 @@ describe('removing a project', () => {
   describe('given not empty project', () => {
     it('should not let remove it', async () => {
       const countBefore = await countAllProjects();
-      await expect(removeProject(firstProjectId)).rejects.toThrow();
+      await expect(removeProject({ projectId: firstProjectId, categoryId: firstCategoryId })).rejects.toThrow();
       const countAfter = await countAllProjects();
       expect(countAfter).toEqual(countBefore);
     });
@@ -117,7 +117,7 @@ describe('removing a project', () => {
   describe('given empty project', () => {
     it('should let remove it', async () => {
       const countBefore = await countAllProjects();
-      await expect(removeProject(secondProjectId)).resolves.not.toThrow();
+      await expect(removeProject({ projectId: secondProjectId, categoryId: firstCategoryId })).resolves.not.toThrow();
       const countAfter = await countAllProjects();
       expect(countAfter).toEqual(countBefore - 1);
     });

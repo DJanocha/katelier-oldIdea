@@ -4,9 +4,18 @@ import { catchAsync, generateHandlers } from 'src/utils';
 import * as service from 'src/services/projectService';
 import { Types } from 'mongoose';
 
-const { deleteOne, getOne, updateOne } = generateHandlers({
+const {  getOne, updateOne } = generateHandlers({
   model: Project
 });
+
+const deleteOne: RequestHandler = catchAsync(async (req, res, next) => {
+  const { params } = req;
+  const categoryId = new Types.ObjectId(params.categoryId);
+  const projectId = new Types.ObjectId(params.id);
+  const newElement = await service.removeProject({categoryId, projectId})
+  return res.status(200).json({ ok: true, data: newElement });
+});
+
 
 const createOne: RequestHandler = catchAsync(async (req, res, next) => {
   const { user, params, body } = req;

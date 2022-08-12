@@ -79,10 +79,16 @@ type ProjectMutation = Partial<Pick<IProject, 'name' | 'description' | 'client_i
 export const updateProject = async ({ projectId, ...data }: ProjectMutation) =>
   Project.findByIdAndUpdate(projectId, data);
 
-export const removeProject = async (projectId: Types.ObjectId) => {
-  const project: ProjectDocument | null = await Project.findById(projectId);
+export const removeProject = async ({
+  projectId,
+  categoryId
+}: {
+  projectId: Types.ObjectId;
+  categoryId: Types.ObjectId;
+}) => {
+  const project: ProjectDocument | null = await Project.findOne({ _id: projectId, category: categoryId });
   if (!project) {
-    throw new AppError('could not find the category', 400);
+    throw new AppError('could not find the project', 400);
   }
   if (project.steps.length > 0) {
     throw new AppError('cannot remove project that is not empty', 400);
