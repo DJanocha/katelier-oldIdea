@@ -44,29 +44,36 @@ export const addProject = async ({
   return category.addProject(newProjectData);
 };
 
-// const getProjectLastStepImg = (project: ProjectDocumentsWithSteps): ProjectDocumentsWithStepsAndLastStepImg => {
-const getProjectLastStepImg = (project: ProjectDocumentsWithSteps) => {
-  if (!project.steps.length) {
-    return project as ProjectDocumentsWithStepsAndLastStepImg;
-    //   return { ...project, lastStepImg: undefined };
-  }
-  const lastStep = getLastItem<StepDocument>(project.steps);
-  const lastStepImg = lastStep?.img;
-  // return { ...project, lastStepImg } as ProjectDocumentsWithStepsAndLastStepImg;
-  return { ...project, lastStepImg };
-};
-
-export const getProjects = async (categoryId: Types.ObjectId) => {
-  const projects: ProjectDocumentsWithSteps[] = await Project.find({ category: categoryId }).populate({
-    path: 'steps',
-    select: '-_id img'
-  });
-  if (!projects || !projects.length) {
-    return [];
-  }
-  return projects.map(getProjectLastStepImg);
-};
-
+export const getProjects = async (categoryId: Types.ObjectId) =>
+  Project.aggregate()
+    .match({ category: categoryId })
+    .addFields({ last_step_id: { $last: '$steps' } })
+    /*
+    that below read as:
+    From all documents in table called "steps"
+    find all the documents that have "_id" field
+    equal to "last_field_id" in current documents.
+    Every matching document save to 'last_step_as_arr' array
+    
+    */
+    .lookup({
+      from: 'steps',
+      foreignField: '_id',
+      localField: 'last_step_id',
+      as: 'last_step_as_arr'
+    })
+    .addFields({
+      last_step_item: { $last: '$last_step_as_arr' }
+    })
+    .addFields({
+      last_step_img: '$last_step_item.img'
+    })
+    .project({
+      last_step_id: 0,
+      last_step_as_arr: 0,
+      last_step_item: 0
+    })
+    .exec();
 type ProjectMutation = Partial<Pick<IProject, 'name' | 'description' | 'client_info'>> & { projectId: Types.ObjectId };
 
 export const updateProject = async ({ projectId, ...data }: ProjectMutation) =>
