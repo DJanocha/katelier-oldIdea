@@ -1,24 +1,19 @@
 
 import { Types } from 'mongoose';
-import { AppError } from 'src/utils';
+import { AppError, mergeDateTime } from 'src/utils';
 import { Activity, IActivity } from 'src/models/activities';
 import { isPointOfTimeOccupiedByAnyActivity } from 'src/utils/isPointOfTimeOccupiedByAnyActivity';
 import { User } from 'src/models';
 import { UserDocument } from 'src/models/users';
 
-const mergeDateTime = ({ time, date }: { time: Date; date: Date }) => {
-  const merged = new Date(time);
-  merged.setFullYear(date.getFullYear());
-  merged.setMonth(date.getMonth());
-  merged.setDate(date.getDate());
-  return merged;
+
 };
 
-export const getEvents = async()=>Activity.getEvents();
-export const getTemplates = async()=>Activity.getTemplates();
-export const getActivities = async()=> Activity.find();
+export const getEvents = async () => Activity.getEvents();
+export const getTemplates = async () => Activity.getTemplates();
+export const getActivities = async () => Activity.find();
 
-export const createEvent = async (newEvent: IActivity & { date: Date, userId: Types.ObjectId }) => {
+export const createEvent = async (newEvent: IActivity & { date: Date; userId: Types.ObjectId }) => {
   const { start_time, stop_time, name, description, date, color, userId } = newEvent;
   const user = User.findById<UserDocument>(userId);
 
@@ -48,7 +43,7 @@ export const createEvent = async (newEvent: IActivity & { date: Date, userId: Ty
   return Activity.create(newEvent);
 };
 
-export const createTemplate = async (newTemplate: Omit<IActivity, 'date'> & {userId : Types.ObjectId}) => {
+export const createTemplate = async (newTemplate: Omit<IActivity, 'date'> & { userId: Types.ObjectId }) => {
   const { name, userId } = newTemplate;
   const user = User.findById<UserDocument>(userId);
 

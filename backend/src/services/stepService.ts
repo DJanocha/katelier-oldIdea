@@ -86,8 +86,8 @@ export const getStep = async ({
     _id: new Types.ObjectId(stepId)
 });
 
-export const getAllSteps = async (id: string) => {
-  const projectId = new Types.ObjectId(id);
+export const getAllSteps = async (relatedProjectId: string) => {
+  const projectId = new Types.ObjectId(relatedProjectId);
   const project: ProjectDocument | null = await Project.findById(projectId);
   if (!project) {
     throw new AppError('could not find the project', 400);
