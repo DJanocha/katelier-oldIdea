@@ -1,6 +1,13 @@
 import { Types } from 'mongoose';
-import { createEvent, createTemplate, getActivities, getEvents, getTemplates } from 'src/services/activitiesService';
-import { register } from 'src/services/authService';
+import {
+  createEvent,
+  createTemplate,
+  getActivities,
+  getEvents,
+  getTemplates,
+  updateActivity
+} from 'src/services/activitiesService';
+import { register, registerArtist } from 'src/services/authService';
 import { connectDB, clearDB, closeDB } from './db';
 beforeAll(async () => await connectDB());
 afterEach(async () => await clearDB());
@@ -120,3 +127,38 @@ describe('adding new activities', () => {
     });
   });
 });
+
+describe('updating activities', () => {
+  let allBefore: number;
+  let eventsBefore: number;
+  let tempsBefore: number;
+  let templateId: Types.ObjectId;
+
+  beforeEach(async () => {
+    const artist = await registerArtist({ email: takenEmail, password: validPassword, passwordConfirm: validPassword });
+
+    const template = await createTemplate({
+      start_time: time12,
+      stop_time: time14,
+      name: occupiedTemplateName,
+      userId: artist._id
+    });
+    templateId = template.id;
+
+    const { all, events, temps } = await getAllActivitiesKindsCounts();
+    eventsBefore = events;
+    tempsBefore = temps;
+    allBefore = all;
+  });
+
+  describe('when trying to add date info to template', () => {
+    it('should not transition from template to event', async () => {
+      await expect(updateActivity({ id: templateId, dataToUpdate: { date: now } })).rejects.toThrow();
+      const { all, events, temps } = await getAllActivitiesKindsCounts();
+
+      expect(events).toEqual(eventsBefore);
+      expect(temps).toEqual(tempsBefore);
+      expect(all).toEqual(allBefore);
+    });
+  });
+})

@@ -1,5 +1,4 @@
 import { Schema, model, Types, Document, Model } from 'mongoose';
-import { isDateValid } from 'src/utils';
 import { StepModel } from './steps';
 
 export interface IActivity {
@@ -15,10 +14,10 @@ export interface IActivity {
 
 export interface ActivityDocument extends IActivity, Document {
   step: StepModel['_id'];
+  isTemplate(): boolean;
 }
 export interface ActivityDocumentWithStep extends ActivityDocument {
   step: StepModel;
-  isTemplate(): boolean;
 }
 
 /*Now it can be as a type. If you want to add some 

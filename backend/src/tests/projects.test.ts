@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { connectDB, clearDB, closeDB } from './db';
-import { addProject, getProject, removeProject } from 'src/services/projectService';
+import { addProject, getProjects, removeProject } from 'src/services/projectService';
 import { registerArtist } from 'src/services/authService';
 import { addCategory } from 'src/services/categoriesService';
 import { countAllProjects } from 'src/services/projectService';
@@ -29,12 +29,12 @@ describe('adding new project', () => {
     });
     artistId = artist._id;
     const firstCategory = await addCategory({ userId: artistId, newCategoryName: sample.names.category[0] });
-    await addProject({ userId: artist._id, categoryId: firstCategory._id, newProjectName: sample.names.project[0] });
+    await addProject({ userId: artist._id, categoryId: firstCategory._id, newProjectData: {name :sample.names.project[0] }});
 
     firstCategoryId = firstCategory._id;
     const secondCategory = await addCategory({ userId: artist._id, newCategoryName: sample.names.category[1] });
     secondCategoryId = secondCategory._id;
-    await addProject({ userId: artistId, categoryId: firstCategoryId, newProjectName: sample.names.project[1] });
+    await addProject({ userId: artistId, categoryId: firstCategoryId, newProjectData: {name :sample.names.project[1] }});
     projectsCountBefore = await countAllProjects();
   });
 
@@ -42,7 +42,7 @@ describe('adding new project', () => {
     describe('given already occupied project name for given category', () => {
       it('Should NOT let create new project', async () => {
         await expect(
-          addProject({ userId: artistId, categoryId: firstCategoryId, newProjectName: sample.names.project[0] })
+          addProject({ userId: artistId, categoryId: firstCategoryId, newProjectData: {name :sample.names.project[0] }})
         ).rejects.toThrow();
 
         const projectsAfter = await countAllProjects();
@@ -52,7 +52,7 @@ describe('adding new project', () => {
     describe('given project name NOT occupied yet by given category ', () => {
       it('Should create new project', async () => {
         await expect(
-          addProject({ userId: artistId, categoryId: secondCategoryId, newProjectName: sample.names.project[0] })
+          addProject({ userId: artistId, categoryId: secondCategoryId, newProjectData: {name :sample.names.project[0] }})
         ).resolves.not.toThrow();
         const projectsAfter = await countAllProjects();
         expect(projectsAfter).toEqual(projectsCountBefore + 1);
@@ -61,7 +61,7 @@ describe('adding new project', () => {
     describe('given project name used by OTHER category', () => {
       it('Should create new project', async () => {
         await expect(
-          addProject({ userId: artistId, categoryId: secondCategoryId, newProjectName: sample.names.project[0] })
+          addProject({ userId: artistId, categoryId: secondCategoryId, newProjectData: {name :sample.names.project[0] }})
         ).resolves.not.toThrow();
         const projectsAfter = await countAllProjects();
         expect(projectsAfter).toEqual(projectsCountBefore + 1);
@@ -87,13 +87,13 @@ describe('removing a project', () => {
     const firstProject = await addProject({
       userId: artist._id,
       categoryId: firstCategory._id,
-      newProjectName: sample.names.project[0]
+      newProjectData: {name :sample.names.project[0]}
     });
     firstProjectId = firstProject._id;
     const secondProject = await addProject({
       userId: artist._id,
       categoryId: firstCategory._id,
-      newProjectName: sample.names.project[1]
+      newProjectData: {name :sample.names.project[1]}
     });
     secondProjectId = secondProject._id;
 
@@ -109,7 +109,7 @@ describe('removing a project', () => {
   describe('given not empty project', () => {
     it('should not let remove it', async () => {
       const countBefore = await countAllProjects();
-      await expect(removeProject(firstProjectId)).rejects.toThrow();
+      await expect(removeProject({ projectId: firstProjectId, categoryId: firstCategoryId })).rejects.toThrow();
       const countAfter = await countAllProjects();
       expect(countAfter).toEqual(countBefore);
     });
@@ -117,7 +117,7 @@ describe('removing a project', () => {
   describe('given empty project', () => {
     it('should let remove it', async () => {
       const countBefore = await countAllProjects();
-      await expect(removeProject(secondProjectId)).resolves.not.toThrow();
+      await expect(removeProject({ projectId: secondProjectId, categoryId: firstCategoryId })).resolves.not.toThrow();
       const countAfter = await countAllProjects();
       expect(countAfter).toEqual(countBefore - 1);
     });
@@ -128,6 +128,7 @@ describe('getting the project', () => {
   const img = 'example image path';
   let firstProjectId: Types.ObjectId;
   let secondProjectId: Types.ObjectId;
+  let firstCategoryId : Types.ObjectId;
   const date = new Date();
   const start_time = new Date();
   start_time.setHours(12, 20);
@@ -141,16 +142,16 @@ describe('getting the project', () => {
     });
     const artistId = artist._id;
     const firstCategory = await addCategory({ userId: artistId, newCategoryName: sample.names.category[0] });
-    const firstCategoryId = firstCategory._id;
+    firstCategoryId = firstCategory._id;
     const first = await addProject({
       userId: artistId,
       categoryId: firstCategoryId,
-      newProjectName: sample.names.project[0]
+      newProjectData: {name :sample.names.project[0]}
     });
     const second = await addProject({
       userId: artistId,
       categoryId: firstCategoryId,
-      newProjectName: sample.names.project[1]
+      newProjectData: {name :sample.names.project[1]}
     });
     firstProjectId = first._id;
     secondProjectId = second._id;
@@ -166,14 +167,14 @@ describe('getting the project', () => {
   });
   describe('when at least 1 step added', () => {
     it('should get project with proper last_step_image', async () => {
-      const projectWithSteps = await getProject(firstProjectId);
-      expect(projectWithSteps?.lastStepImg).toEqual(img);
+      const projectWithSteps = await getProjects(firstCategoryId);
+      expect(projectWithSteps?.[0]?.lastStepImg).toEqual(img);
     });
   });
   describe('when no steps added', () => {
     it('should get project with empty last_step_image', async () => {
-      const projectWithoutSteps = await getProject(secondProjectId);
-      expect(projectWithoutSteps?.lastStepImg).toEqual(undefined);
+      const projectWithoutSteps = await getProjects(firstCategoryId);
+      expect(projectWithoutSteps?.[1]?.lastStepImg).toEqual(undefined);
     });
   });
 });

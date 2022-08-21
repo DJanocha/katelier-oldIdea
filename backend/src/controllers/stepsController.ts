@@ -1,7 +1,55 @@
 import { Step } from 'src/models';
-import { generateHandlers } from 'src/utils';
-const { createOne, deleteOne, getAll, getOne, updateOne } = generateHandlers({
-  model: Step
+import { catchAsync, generateHandlers } from 'src/utils';
+import * as service from 'src/services/stepService';
+import { RequestHandler } from 'express';
+import { stepsRouter } from 'src/routes/stepsRouter';
+
+const getAll: RequestHandler = catchAsync(async (req, res, next) => {
+  const allElements = await service.getAllSteps(req.params.projectId);
+  return res.status(200).json({
+    ok: true,
+    data: allElements
+  });
 });
 
+const createOne: RequestHandler = catchAsync(async (req, res, next) => {
+  const { user, params } = req;
+  const { categoryId, projectId } = params;
+  const projectWithNewStep = await service.addStep({ categoryId, projectId, userId: user?._id, ...req.body });
+
+  return res.status(200).json({
+    ok: true,
+    data: projectWithNewStep
+  });
+});
+
+const getOne: RequestHandler = catchAsync(async (req, res, next) => {
+  const { categoryId, id, projectId } = req.params;
+  const projectWithNewStep = await service.getStep({ categoryId, projectId, stepId: id });
+
+  return res.status(200).json({
+    ok: true,
+    data: projectWithNewStep
+  });
+});
+
+const updateOne: RequestHandler = catchAsync(async (req, res, next) => {
+  const { categoryId, id, projectId } = req.params;
+  const projectWithNewStep = await service.updateStep({ stepId: id, categoryId, projectId, ...req.body });
+
+  return res.status(200).json({
+    ok: true,
+    data: projectWithNewStep
+  });
+});
+
+const deleteOne: RequestHandler = catchAsync(async (req, res, next) => {
+  const { categoryId, id, projectId } = req.params;
+  const deletedProject = await service.deleteStep({ stepId: id, categoryId, projectId });
+
+  return res.status(200).json({
+    ok: true,
+    data: deletedProject
+  });
+});
 export { getAll, createOne, getOne, updateOne, deleteOne };

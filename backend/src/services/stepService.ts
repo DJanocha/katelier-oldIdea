@@ -19,7 +19,8 @@ export const addStep = async ({
   date: Date;
   img?: string;
   description?: string;
-  userId: Types.ObjectId;
+  // userId: Types.ObjectId;
+  userId: string | Types.ObjectId | undefined;
 }) => {
   const project: ProjectDocument | null = await Project.findById(projectId);
   if (!project) {
@@ -33,20 +34,60 @@ export const addStep = async ({
   await innerActivity.save();
   project.steps.push(step._id);
   await project.save();
+  return project;
 };
 
 type StepMutation = Pick<IActivity, 'date' | 'start_time' | 'stop_time' | 'description'> &
   Pick<IStep, 'img' | 'used_materials'> & {
-    stepId: Types.ObjectId;
+    stepId: string,
+    categoryId: string,
+    projectId: string
   };
 
-export const updateStep = async ({ stepId, ...data }: StepMutation) => Step.findByIdAndUpdate(stepId, data);
+export const updateStep = async ({ stepId, categoryId, projectId, ...data }: StepMutation) =>
+  Step.findOneAndUpdate(
+    {
+      _id: new Types.ObjectId(stepId),
+      category: new Types.ObjectId(categoryId),
+      project: new Types.ObjectId(projectId)
+    },
+    data
+  );
 
-export const deleteStep = async (stepId: Types.ObjectId) => Step.findByIdAndDelete(stepId);
+// export const deleteStep = async (stepId: Types.ObjectId) => Step.findByIdAndDelete(stepId);
+export const deleteStep = async ({
+  categoryId,
+  projectId,
+  stepId
+}: {
+  stepId: string;
+  categoryId: string;
+  projectId: string;
+}) => {
+  await Project.findOneAndUpdate(
+    { _id: new Types.ObjectId(projectId) },
+    { $pull: { steps: new Types.ObjectId(stepId) } }
+  );
+  await Step.findByIdAndDelete(stepId);
+};
 
-export const getStep = async (stepId: Types.ObjectId) => Step.findById(stepId);
+export const getStep = async ({
+  stepId,
+  projectId,
+  categoryId
+}: {
+  stepId: string;
+  categoryId: string;
+  projectId: string;
+}) =>
+  Step.findOne({
+    category: new Types.ObjectId(categoryId),
+    project: new Types.ObjectId(projectId),
+    _id: new Types.ObjectId(stepId)
+});
 
-export const getAllSteps = async (projectId: Types.ObjectId) => {
+export const getAllSteps = async (relatedProjectId: string) => {
+  const projectId = new Types.ObjectId(relatedProjectId);
   const project: ProjectDocument | null = await Project.findById(projectId);
   if (!project) {
     throw new AppError('could not find the project', 400);

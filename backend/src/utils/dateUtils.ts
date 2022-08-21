@@ -11,3 +11,11 @@ export const newDate = (params?: DateParams) => {
   now.setHours(hours, minutes);
   return now;
 };
+
+export const mergeDateTime = ({ time, date }: { time: Date; date: Date }) => {
+  const merged = new Date(time);
+  merged.setFullYear(date.getFullYear());
+  merged.setMonth(date.getMonth());
+  merged.setDate(date.getDate());
+  return merged;
+};

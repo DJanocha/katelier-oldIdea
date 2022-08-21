@@ -13,7 +13,8 @@ import stepsRouter from 'src/routes/stepsRouter';
 import projectsRouter from 'src/routes/projectsRouter';
 import usersRouter from 'src/routes/usersRouter';
 import categoriesRouter from 'src/routes/categoriesRouter';
-import activitiesRouter from 'src/routes/activitiesRouter';
+import eventsRouter from 'src/routes/eventsRouter';
+import templatesRouter from 'src/routes/templatesRouter';
 import authRouter from 'src/routes/authRouter';
 const unknownRouteHandler = (req: Request, res: Response, next: NextFunction) => {
   next(new AppError(`Could not find ${req.originalUrl} route.`, 404));
@@ -41,7 +42,8 @@ export const useAllRoutesBy = (app: Express) => {
   app.use('/api/projects', projectsRouter);
   app.use('/api/users', usersRouter);
   app.use('/api/categories', categoriesRouter);
-  app.use('/api/activities', activitiesRouter);
+  app.use('/api/templates', templatesRouter);
+  app.use('/api/events', eventsRouter);
   app.use('/', authRouter);
 
   app.all('*', unknownRouteHandler);

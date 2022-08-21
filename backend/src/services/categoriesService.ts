@@ -9,7 +9,10 @@ export const countAllCategories = async () => {
   return count;
 };
 
-export const getAllCategories = async () => Category.find({});
+export const getUsersCategories = async (userId: Types.ObjectId) => {
+  const userWithCategoriesPopulated = await User.findById(userId).populate('categories');
+  return userWithCategoriesPopulated?.categories || [];
+};
 
 export const addCategory = async ({ userId, newCategoryName }: { userId: Types.ObjectId; newCategoryName: string }) => {
   const user: UserDocument | null = await User.findById<UserDocument>(userId);
@@ -36,4 +39,7 @@ type CategoryMutation = Partial<Pick<ICategory, 'name' | 'description' | 'color'
   categoryId: Types.ObjectId;
 };
 
-export const updateStep = async ({ categoryId, ...data }: CategoryMutation) => Step.findByIdAndUpdate(categoryId, data);
+export const updateCategory = async ({ categoryId, ...data }: CategoryMutation) =>
+  Category.findByIdAndUpdate(categoryId, data);
+
+export const getCategory = async (id: string) => Category.findById(new Types.ObjectId(id));
