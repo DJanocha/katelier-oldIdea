@@ -1,14 +1,26 @@
-
 import { Types } from 'mongoose';
 import { AppError, mergeDateTime } from 'src/utils';
-import { Activity, IActivity } from 'src/models/activities';
+import { Activity, IActivity, ActivityDocument } from 'src/models/activities';
 import { isPointOfTimeOccupiedByAnyActivity } from 'src/utils/isPointOfTimeOccupiedByAnyActivity';
 import { User } from 'src/models';
 import { UserDocument } from 'src/models/users';
 
 
+type ActivityMutation = Omit<Partial<IActivity>, 'userId'>;
+
+const wantsToBeAnEvent = (data: ActivityMutation) => data.date || data.step;
+export const updateActivity = async ({id: activityId, dataToUpdate}:{ id: Types.ObjectId, dataToUpdate: ActivityMutation }) => {
+  const beforeUpdate: ActivityDocument | null = await Activity.findById(activityId, dataToUpdate);
+  if (!beforeUpdate) {
+    throw new AppError('Cannot find activity to update', 400);
+  }
+  if (beforeUpdate.isTemplate() && wantsToBeAnEvent(dataToUpdate)) {
+    throw new AppError('Cannot make a transition from a template to an event', 400);
+  }
+  return Activity.findByIdAndUpdate(activityId, dataToUpdate);
 };
 
+export const deleteActivity = async (activityId: Types.ObjectId) => Activity.findByIdAndDelete(activityId);
 export const getEvents = async () => Activity.getEvents();
 export const getTemplates = async () => Activity.getTemplates();
 export const getActivities = async () => Activity.find();
