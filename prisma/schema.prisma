@@ -9,3 +9,24 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
+
+enum UserRole {
+  CLIENT
+  ARTIST
+}
+
+model User {
+  id                   String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                 String?   @unique @default(cuid())
+  tel                  String?   @default("")
+  email                String    @unique @default("")
+  ig                   String?   @default("")
+  facebook             String?   @default("")
+  image                String?   @default("")
+  role                 UserRole
+  password             String
+  passwordChangedAt    DateTime?
+  resetPassword        String?
+  resetPasswordExpires Int?
+  active               Boolean   @default(true)
+}
