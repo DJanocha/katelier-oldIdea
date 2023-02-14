@@ -1,1 +1,0 @@
-export const getLastItem = <T>(items: T[]) => items[items.length - 1];
