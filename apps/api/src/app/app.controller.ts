@@ -20,6 +20,7 @@ import {
   ApiCreatedResponse,
   ApiUnauthorizedResponse,
   ApiConflictResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { MeResponseDto } from '../auth/dto/me-response-dto';
@@ -53,6 +54,7 @@ export class AppController {
   }
 
   @Get('/me')
+  @ApiBearerAuth()
   @ApiOkResponse({ type: MeResponseDto })
   @ApiUnauthorizedResponse({
     schema: {

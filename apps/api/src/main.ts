@@ -21,6 +21,7 @@ async function bootstrap() {
     .setTitle('Katelier')
     .setDescription('Your digital workshop')
     .setVersion('0.1')
+    .addBearerAuth()
     .build();
 
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
