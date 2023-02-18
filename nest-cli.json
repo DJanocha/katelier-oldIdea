@@ -1,0 +1,7 @@
+{
+    "language": "ts",
+    "sourceRoot": "apps/api/src",
+    "compilerOptions": {
+        "plugins": ["@nestjs/swagger"]
+      }
+}
